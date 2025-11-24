@@ -4,10 +4,12 @@ FROM node:18-alpine as builder
 WORKDIR /app
 
 # Copy package files
-    COPY package*.json ./
-    
-    # Install dependencies
-    RUN npm install# Copy source code
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy source code
 COPY . .
 
 # Build the application
