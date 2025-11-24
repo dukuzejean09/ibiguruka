@@ -16,7 +16,7 @@ COPY . .
 RUN if [ ! -f .env ]; then echo "VITE_API_URL=http://localhost:8000" > .env; fi
 
 # Build the application
-RUN npm run build
+RUN npm run build 2>&1 || (echo "Build failed. Checking for errors..." && ls -la && exit 1)
 
 # Production stage
 FROM nginx:alpine

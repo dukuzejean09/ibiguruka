@@ -1,6 +1,7 @@
 {
   "name": "neighborwatch-connect-frontend",
   "version": "1.0.0",
+  "type": "module",
   "description": "NeighborWatch Connect - Citizen Safety Platform",
   "private": true,
   "scripts": {
