@@ -12,6 +12,9 @@ RUN npm install
 # Copy source code
 COPY . .
 
+# Create .env file with default values if not exists
+RUN if [ ! -f .env ]; then echo "VITE_API_URL=http://localhost:8000" > .env; fi
+
 # Build the application
 RUN npm run build
 
