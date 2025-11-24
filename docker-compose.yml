@@ -1,0 +1,76 @@
+version: "3.8"
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7
+    container_name: neighborwatch-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: neighborwatch
+    networks:
+      - neighborwatch-network
+
+  # FastAPI Backend
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: neighborwatch-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - DATABASE_NAME=neighborwatch
+      - SECRET_KEY=${SECRET_KEY:-your-secret-key-change-in-production}
+      - DEBUG=True
+    depends_on:
+      - mongodb
+    volumes:
+      - ./api:/app
+    networks:
+      - neighborwatch-network
+
+  # DBSCAN Clustering Service
+  clustering:
+    build:
+      context: ./backend/clustering
+      dockerfile: Dockerfile
+    container_name: neighborwatch-clustering
+    restart: unless-stopped
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - DATABASE_NAME=neighborwatch
+      - API_URL=http://api:8000
+    depends_on:
+      - mongodb
+      - api
+    networks:
+      - neighborwatch-network
+
+  # React Frontend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: neighborwatch-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - neighborwatch-network
+
+networks:
+  neighborwatch-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rwanda National Police - Incident Management</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <!-- Login View (Overlay) -->
+        <div id="login-view" class="active">
+            <div class="login-card">
+                <div class="login-header">
+                    <div
+                        style="width: 80px; height: 80px; background: #334155; border-radius: 50%; margin: 0 auto 1rem; display: flex; align-items: center; justify-content: center;">
+                        <span style="font-size: 2rem;">👮</span>
+                    </div>
+                    <h2>Rwanda National Police</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.875rem;">Incident Management Platform</p>
+                </div>
+                <div class="login-form">
+                    <h3 style="color: var(--text-primary); margin-bottom: 1rem; font-size: 1rem;">Officer Secure Login
+                    </h3>
+                    <input type="text" id="login-id" placeholder="Username / Service Number" value="officer.rw">
+                    <input type="password" id="login-password" placeholder="Password" value="password">
+                    <button id="login-submit-btn" class="btn-primary" style="width: 100%;">Login</button>
+                    <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                        <a href="#"
+                            style="color: var(--primary-color); font-size: 0.75rem; text-decoration: none;">Forgot
+                            Password?</a>
+                        <button id="go-to-admin-login"
+                            style="background: none; border: none; color: var(--text-secondary); font-size: 0.75rem; cursor: pointer; text-decoration: underline;">Admin
+                            Login</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Login View -->
+        <div id="admin-login-view" class="view"
+            style="z-index: 1001; position: fixed; top: 0; left: 0; width: 100%; height: 100%;">
+            <div class="admin-login-container">
+                <div class="admin-login-image">
+                    <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 1rem;">Building a Safer<br>Community,
+                        Together.</h1>
+                </div>
+                <div class="admin-login-form-container">
+                    <div class="login-card"
+                        style="border: none; background: none; box-shadow: none; text-align: left; padding: 0; max-width: 350px;">
+                        <div style="margin-bottom: 2rem;">
+                            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Administrator Login</h2>
+                            <p style="color: var(--text-secondary);">Please enter your credentials to access the
+                                dashboard.</p>
+                        </div>
+                        <div class="login-form">
+                            <label
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">Username
+                                or Email</label>
+                            <input type="text" id="admin-login-id" placeholder="admin@police.gov.rw"
+                                value="admin@police.gov.rw">
+                            <label
+                                style="display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">Password</label>
+                            <input type="password" id="admin-login-password" placeholder="Enter your password"
+                                value="password">
+                            <button id="admin-login-submit-btn" class="btn-primary" style="width: 100%;">Login</button>
+                            <button id="back-to-officer-login"
+                                style="background: none; border: none; color: var(--text-secondary); font-size: 0.75rem; cursor: pointer; margin-top: 1rem;">&larr;
+                                Back to Officer Login</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Sidebar (Police) -->
+        <nav class="sidebar" id="main-sidebar" style="display: none;">
+            <div class="logo">
+                <div
+                    style="width: 32px; height: 32px; background: var(--primary-color); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                    🛡️
+                </div>
+                <h2>RNP Command</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-page="dashboard"><span>📊</span> Dashboard</li>
+                <li data-page="reports"><span>📝</span> Reports</li>
+                <li data-page="clusters"><span>🔥</span> Clusters</li>
+                <li data-page="broadcast"><span>📢</span> Broadcast Alert</li>
+                <li data-page="chat"><span>💬</span> Chat</li>
+            </ul>
+            <div class="user-info">
+                <div class="user-profile">
+                    <div class="avatar">JD</div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 0.875rem; font-weight: 600;">John Doe</span>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">Dispatch Operator</span>
+                    </div>
+                </div>
+                <button class="logout-btn" title="Logout">↪️</button>
+            </div>
+        </nav>
+
+        <!-- Admin Sidebar -->
+        <nav class="sidebar" id="admin-sidebar" style="display: none;">
+            <div class="logo">
+                <div
+                    style="width: 32px; height: 32px; background: var(--warning-color); border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                    👑
+                </div>
+                <h2>Admin Panel</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-page="admin-dashboard"><span>📈</span> Dashboard</li>
+                <li data-page="users-list"><span>👥</span> Users</li>
+                <li data-page="admin-settings"><span>⚙️</span> Settings</li>
+            </ul>
+            <div class="user-info">
+                <div class="user-profile">
+                    <div class="avatar" style="background-color: var(--warning-color); color: black;">AD</div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 0.875rem; font-weight: 600;">Admin</span>
+                        <span style="font-size: 0.75rem; color: var(--text-secondary);">Super Admin</span>
+                    </div>
+                </div>
+                <button class="logout-btn" title="Logout">↪️</button>
+            </div>
+        </nav>
+
+        <main class="content" id="main-content" style="display: none;">
+            <!-- Police Views -->
+            <div id="dashboard-view" class="view active">
+                <header>
+                    <h1>Main Dashboard / Map View</h1>
+                    <div class="actions">
+                        <button class="btn-secondary btn-sm">Reports List</button>
+                        <button class="btn-primary btn-sm">Broadcast Alert</button>
+                    </div>
+                </header>
+                <div class="dashboard-grid">
+                    <div class="filters-panel">
+                        <div class="filter-group">
+                            <h3>Filter Incidents</h3>
+                            <div class="checkbox-list">
+                                <label class="checkbox-item"><input type="checkbox" checked> Theft</label>
+                                <label class="checkbox-item"><input type="checkbox" checked> Accident</label>
+                                <label class="checkbox-item"><input type="checkbox" checked> Vandalism</label>
+                                <label class="checkbox-item"><input type="checkbox"> Fire</label>
+                                <label class="checkbox-item"><input type="checkbox"> Assault</label>
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <h3>Timeframe</h3>
+                            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                <button class="btn-secondary btn-sm" style="flex: 1;">Last 24h</button>
+                                <button class="btn-secondary btn-sm" style="flex: 1;">Last 7 Days</button>
+                            </div>
+                        </div>
+                        <button class="btn-primary" style="margin-top: auto;">Apply Filters</button>
+                    </div>
+                    <div class="map-container">
+                        <div id="map"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="reports-view" class="view">
+                <header>
+                    <h1>Incident Reports Dashboard</h1>
+                    <button class="btn-primary">Add New Report</button>
+                </header>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Description</th>
+                                <th>Location</th>
+                                <th>Date/Time</th>
+                                <th>Credibility</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reports-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="clusters-view" class="view">
+                <header>
+                    <h1>Cluster Details View</h1>
+                </header>
+                <div class="cluster-layout">
+                    <div class="cluster-sidebar">
+                        <div class="cluster-header">
+                            <h2 style="font-size: 1.25rem; margin-bottom: 0.5rem;">Cluster #102 - Gasabo</h2>
+                            <span class="status-badge status-investigation">Under Investigation</span>
+                        </div>
+                        <div class="cluster-stats">
+                            <div class="stat-box"><span class="label">Total Reports</span><span class="value">28</span>
+                            </div>
+                            <div class="stat-box"><span class="label">Priority</span><span class="value"
+                                    style="color: var(--danger-color);">High</span></div>
+                        </div>
+                        <div class="map-container" style="height: 300px; margin: 1rem;">
+                            <div id="cluster-map" style="width: 100%; height: 100%;"></div>
+                        </div>
+                    </div>
+                    <div style="padding: 1rem;">
+                        <h3>Related Reports</h3>
+                        <!-- List of reports -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="broadcast-view" class="view">
+                <header>
+                    <h1>Broadcast Alert Screen</h1>
+                </header>
+                <div class="broadcast-layout">
+                    <div class="alert-form">
+                        <h2 style="margin-bottom: 1.5rem;">Create Geo-Targeted Alert</h2>
+                        <div class="form-group">
+                            <label>Alert Message</label>
+                            <textarea id="alert-message" rows="5" class="form-control"
+                                placeholder="Enter alert details here..."></textarea>
+                        </div>
+                        <div class="map-container" style="height: 300px; margin-bottom: 1rem;">
+                            <div id="broadcast-map" style="width: 100%; height: 100%;"></div>
+                        </div>
+                        <button class="btn-primary" style="width: 100%;">Send Alert</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chat-view" class="view">
+                <header>
+                    <h1>Police-Citizen Chat Interface</h1>
+                </header>
+                <div class="chat-container">
+                    <div class="chat-sidebar">
+                        <div class="chat-list">
+                            <div class="chat-item active">
+                                <span style="font-weight: 600;">Incident #TR-12345</span>
+                                <p style="font-size: 0.875rem; color: var(--text-secondary);">Citizen: Yes, I am safe
+                                    now.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-main">
+                        <div class="messages-area">
+                            <div class="message received">
+                                <p>Can you confirm you are safe?</p>
+                            </div>
+                            <div class="message sent">
+                                <p>Yes, I am safe now.</p>
+                            </div>
+                        </div>
+                        <div class="chat-input-area">
+                            <input type="text" placeholder="Type a message..." class="form-control">
+                            <button class="btn-primary">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Views -->
+            <div id="admin-dashboard-view" class="view">
+                <header>
+                    <h1>User Management Dashboard</h1>
+                    <div class="actions">
+                        <button class="btn-primary btn-sm">Download Reports</button>
+                    </div>
+                </header>
+                <div class="admin-stats-grid">
+                    <div class="admin-stat-card">
+                        <h3>Total Users</h3>
+                        <span class="value">1,482</span>
+                        <span class="trend up">▲ +12% this month</span>
+                    </div>
+                    <div class="admin-stat-card">
+                        <h3>Active Officers</h3>
+                        <span class="value">312</span>
+                        <span class="trend up">▲ +5% vs yesterday</span>
+                    </div>
+                    <div class="admin-stat-card">
+                        <h3>New Citizens</h3>
+                        <span class="value">15</span>
+                        <span class="trend">Review Now &rarr;</span>
+                    </div>
+                    <div class="admin-stat-card">
+                        <h3>Blocked Accounts</h3>
+                        <span class="value" style="color: var(--danger-color);">4</span>
+                        <span class="trend down">▼ -2 from last week</span>
+                    </div>
+                </div>
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem;">
+                    <div
+                        style="background: var(--bg-card); padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border-color); height: 300px; display: flex; align-items: center; justify-content: center;">
+                        <span style="color: var(--text-secondary);">[User Registration Trends Chart Placeholder]</span>
+                    </div>
+                    <div
+                        style="background: var(--bg-card); padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--border-color); height: 300px; display: flex; align-items: center; justify-content: center;">
+                        <span style="color: var(--text-secondary);">[Users by Role Chart Placeholder]</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="users-list-view" class="view">
+                <header>
+                    <h1>User Management</h1>
+                    <button class="btn-primary">+ Add New User</button>
+                </header>
+                <div class="table-container">
+                    <div style="padding: 1rem; border-bottom: 1px solid var(--border-color); display: flex; gap: 1rem;">
+                        <input type="text" placeholder="Search by Name, Email, Role..." class="form-control"
+                            style="max-width: 300px;">
+                        <select class="form-control" style="max-width: 150px;">
+                            <option>All Roles</option>
+                        </select>
+                        <select class="form-control" style="max-width: 150px;">
+                            <option>All Status</option>
+                        </select>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Last Activity</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body">
+                            <!-- Dynamic Users -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="user-details-view" class="view">
+                <header>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button class="btn-secondary btn-sm" id="back-to-users">&larr;</button>
+                        <h1>User Details</h1>
+                    </div>
+                </header>
+                <div class="user-details-layout">
+                    <div class="user-profile-card">
+                        <div class="large-avatar">AU</div>
+                        <h2 style="font-size: 1.25rem; margin-bottom: 0.25rem;">Aline Umuhoza</h2>
+                        <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Community Patrol</p>
+                        <div style="text-align: left; display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div>
+                                <span style="font-size: 0.75rem; color: var(--text-secondary); display: block;">User
+                                    ID</span>
+                                <span style="font-weight: 500;">U-908412</span>
+                            </div>
+                            <div>
+                                <span
+                                    style="font-size: 0.75rem; color: var(--text-secondary); display: block;">Email</span>
+                                <span style="font-weight: 500;">a.umuhoza@rnp.gov.rw</span>
+                            </div>
+                            <div>
+                                <span
+                                    style="font-size: 0.75rem; color: var(--text-secondary); display: block;">Status</span>
+                                <span class="status-badge status-active">Active</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div
+                        style="background: var(--bg-card); padding: 2rem; border-radius: 1rem; border: 1px solid var(--border-color);">
+                        <h3
+                            style="margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                            Personal Information</h3>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                            <div class="form-group">
+                                <label>First Name</label>
+                                <input type="text" class="form-control" value="Aline">
+                            </div>
+                            <div class="form-group">
+                                <label>Last Name</label>
+                                <input type="text" class="form-control" value="Umuhoza">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Address</label>
+                            <input type="email" class="form-control" value="a.umuhoza@rnp.gov.rw">
+                        </div>
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" class="form-control" value="+250 788 123 456">
+                        </div>
+                        <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem;">
+                            <button class="btn-secondary">Cancel</button>
+                            <button class="btn-primary">Save Changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="admin-settings-view" class="view">
+                <header>
+                    <h1>General Settings</h1>
+                </header>
+                <div class="settings-section">
+                    <h2>Basic Configuration</h2>
+                    <div class="form-group">
+                        <label>Application Name</label>
+                        <input type="text" class="form-control" value="Rwanda Safety Watch">
+                    </div>
+                    <div class="form-group">
+                        <label>Default Language</label>
+                        <select class="form-control">
+                            <option>English</option>
+                            <option>Kinyarwanda</option>
+                            <option>French</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="settings-section danger-zone">
+                    <h2>Danger Zone</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">These actions are irreversible. Please
+                        proceed with caution.</p>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <h4 style="color: var(--danger-color);">Maintenance Mode</h4>
+                            <p style="font-size: 0.875rem; color: var(--text-secondary);">Take the public-facing
+                                application offline.</p>
+                        </div>
+                        <label class="checkbox-item">
+                            <input type="checkbox"> Enable
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="js/app.js"></script>
+    <script src="js/map.js"></script>
+</body>
+
+</html>
