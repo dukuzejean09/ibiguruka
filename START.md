@@ -5,6 +5,7 @@
 Your application has been successfully built and deployed to GitHub Container Registry (GHCR).
 
 **Your images:**
+
 - `ghcr.io/dukuzejean09/neighborwatch-frontend:latest`
 - `ghcr.io/dukuzejean09/neighborwatch-api:latest`
 - `ghcr.io/dukuzejean09/neighborwatch-clustering:latest`
@@ -29,6 +30,7 @@ start http://localhost:3000
 ```
 
 **Access URLs:**
+
 - 🌐 **Frontend (Main App)**: http://localhost:3000
 - 🔧 **API Documentation**: http://localhost:8000/docs
 - 🗄️ **MongoDB**: localhost:27017
@@ -52,12 +54,14 @@ start http://localhost:3000
 ### 1. **Citizen Portal** (http://localhost:3000)
 
 **Anonymous Access:**
+
 - Click "Continue Anonymously" on the home page
 - Submit incident reports without registration
 - View heat map of incidents
 - Receive alerts
 
 **Registered Users:**
+
 - Click "Login" → "Register" to create account
 - All anonymous features PLUS:
   - Chat with police officers
@@ -66,6 +70,7 @@ start http://localhost:3000
   - Receive personalized alerts
 
 **Available Pages:**
+
 - `/` - Home with heat map
 - `/report` - Submit incident report (with voice input)
 - `/alerts` - View safety alerts
@@ -77,9 +82,11 @@ start http://localhost:3000
 ### 2. **Police Dashboard** (http://localhost:3000/police/login)
 
 **Login:**
+
 - You need to create a police officer account first (see below)
 
 **Features:**
+
 - Live incident map with clusters
 - DBSCAN hotspot visualization
 - Reports management (update status, assign officers)
@@ -88,6 +95,7 @@ start http://localhost:3000
 - Analytics dashboard
 
 **Available Pages:**
+
 - `/police/dashboard` - Main monitoring dashboard
 - `/police/reports` - All reports with filters
 - `/police/clusters` - Hotspot clusters view
@@ -99,15 +107,18 @@ start http://localhost:3000
 ### 3. **Admin Panel** (http://localhost:3000/admin/login)
 
 **Login:**
+
 - You need to create an admin account first (see below)
 
 **Features:**
+
 - User management (view, edit, delete, block)
 - Police officer management
 - System statistics
 - Platform settings
 
 **Available Pages:**
+
 - `/admin/dashboard` - Overview and stats
 - `/admin/users` - Manage all users
 - `/admin/users/:id` - User details
@@ -120,6 +131,7 @@ start http://localhost:3000
 ### Method 1: Using API (Recommended)
 
 **Create Admin Account:**
+
 ```powershell
 # Create admin user
 curl -X POST http://localhost:8000/api/auth/register `
@@ -134,6 +146,7 @@ curl -X POST http://localhost:8000/api/auth/register `
 ```
 
 **Create Police Officer:**
+
 ```powershell
 # Create police user
 curl -X POST http://localhost:8000/api/auth/register `
@@ -149,6 +162,7 @@ curl -X POST http://localhost:8000/api/auth/register `
 ```
 
 **Create Citizen:**
+
 ```powershell
 # Create citizen user
 curl -X POST http://localhost:8000/api/auth/register `
@@ -200,6 +214,7 @@ exit
 ## 🧪 Test the Complete System
 
 ### Step 1: Submit Reports as Citizen
+
 ```powershell
 start http://localhost:3000
 # 1. Click "Continue Anonymously"
@@ -209,12 +224,14 @@ start http://localhost:3000
 ```
 
 ### Step 2: Wait for Clustering
+
 ```
 The clustering service runs every 10 minutes.
 Wait for clusters to appear on the map.
 ```
 
 ### Step 3: View as Police Officer
+
 ```powershell
 start http://localhost:3000/police/login
 # Login with police credentials
@@ -223,6 +240,7 @@ start http://localhost:3000/police/login
 ```
 
 ### Step 4: Broadcast Alert
+
 ```
 1. Go to Police Dashboard → Broadcast Alert
 2. Create an alert message
@@ -231,6 +249,7 @@ start http://localhost:3000/police/login
 ```
 
 ### Step 5: Admin Management
+
 ```powershell
 start http://localhost:3000/admin/login
 # Login with admin credentials
@@ -266,6 +285,7 @@ docker-compose down -v
 ## 🔧 Troubleshooting
 
 ### Containers not starting?
+
 ```powershell
 # Check Docker is running
 docker --version
@@ -275,6 +295,7 @@ docker-compose -f docker-compose.ghcr.yml up -d
 ```
 
 ### Can't access the pages?
+
 ```powershell
 # Check if ports are available
 netstat -an | Select-String "3000|8000|27017"
@@ -283,6 +304,7 @@ netstat -an | Select-String "3000|8000|27017"
 ```
 
 ### API not responding?
+
 ```powershell
 # Check API logs
 docker logs neighborwatch-api
@@ -292,6 +314,7 @@ docker restart neighborwatch-api
 ```
 
 ### No clusters appearing?
+
 ```powershell
 # Check clustering service logs
 docker logs neighborwatch-clustering
@@ -307,6 +330,7 @@ curl -X POST http://localhost:8000/api/clusters/refresh
 Your Docker images are ready for deployment to any cloud provider:
 
 ### Deploy to:
+
 - **AWS** (ECS, EC2, App Runner)
 - **Azure** (Container Instances, AKS)
 - **Google Cloud** (Cloud Run, GKE)
@@ -314,6 +338,7 @@ Your Docker images are ready for deployment to any cloud provider:
 - **Heroku** (Container Registry)
 
 ### Production Checklist:
+
 - [ ] Set strong `SECRET_KEY` environment variable
 - [ ] Use MongoDB Atlas (cloud database)
 - [ ] Set `DEBUG=False` in API
@@ -337,6 +362,7 @@ Your Docker images are ready for deployment to any cloud provider:
 ## 🎓 For Your Project Presentation
 
 **Demo Flow:**
+
 1. Show citizen reporting an incident (with voice input)
 2. Submit multiple reports in same area
 3. Show police dashboard with DBSCAN clusters
@@ -345,6 +371,7 @@ Your Docker images are ready for deployment to any cloud provider:
 6. Display heat map visualization
 
 **Key Features to Highlight:**
+
 - ✅ Real-time incident reporting
 - ✅ DBSCAN clustering for hotspot detection
 - ✅ Kinyarwanda voice input support

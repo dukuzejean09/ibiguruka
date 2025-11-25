@@ -50,6 +50,10 @@ export default function LoginPage() {
     navigate("/admin-login");
   };
 
+  const goToPoliceLogin = () => {
+    navigate("/police-login");
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4">
       <div className="w-full max-w-md">
@@ -147,19 +151,31 @@ export default function LoginPage() {
               Continue Anonymously
             </button>
 
-            <div className="flex items-center justify-between text-sm">
-              <button
-                onClick={() => setIsRegister(!isRegister)}
-                className="text-blue-400 hover:text-blue-300"
-              >
-                {isRegister ? "Already have an account?" : "Create new account"}
-              </button>
-              <button
-                onClick={goToAdminLogin}
-                className="text-slate-400 hover:text-slate-300"
-              >
-                Admin/Police Login →
-              </button>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between text-sm">
+                <button
+                  onClick={() => setIsRegister(!isRegister)}
+                  className="text-blue-400 hover:text-blue-300"
+                >
+                  {isRegister ? "Already have an account?" : "Create new account"}
+                </button>
+              </div>
+              
+              <div className="flex items-center justify-center gap-3 text-sm pt-2 border-t border-slate-700">
+                <button
+                  onClick={goToPoliceLogin}
+                  className="text-indigo-400 hover:text-indigo-300 font-medium"
+                >
+                  Police Officer →
+                </button>
+                <span className="text-slate-600">|</span>
+                <button
+                  onClick={goToAdminLogin}
+                  className="text-purple-400 hover:text-purple-300 font-medium"
+                >
+                  Admin →
+                </button>
+              </div>
             </div>
           </div>
         </div>

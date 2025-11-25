@@ -9,6 +9,7 @@ import { useAuthStore } from "./store/authStore";
 // Auth Pages
 import LoginPage from "./pages/auth/LoginPage";
 import AdminLoginPage from "./pages/auth/AdminLoginPage";
+import PoliceLoginPage from "./pages/auth/PoliceLoginPage";
 
 // Citizen Pages
 import CitizenLayout from "./layouts/CitizenLayout";
@@ -52,6 +53,7 @@ function App() {
         {/* Public Routes */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin-login" element={<AdminLoginPage />} />
+        <Route path="/police-login" element={<PoliceLoginPage />} />
 
         {/* Citizen Routes */}
         <Route
@@ -78,7 +80,8 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<PoliceDashboard />} />
+          <Route index element={<Navigate to="/police/dashboard" replace />} />
+          <Route path="dashboard" element={<PoliceDashboard />} />
           <Route path="reports" element={<ReportsManagement />} />
           <Route path="clusters" element={<ClustersView />} />
           <Route path="broadcast" element={<BroadcastAlert />} />
