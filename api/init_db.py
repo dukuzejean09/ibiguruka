@@ -5,8 +5,7 @@ Database initialization script
 - Clears all reports, chats, alerts, and clusters
 """
 
-import asyncio
-from motor.motor_asyncio import AsyncIOMotorClient
+from pymongo import MongoClient
 from datetime import datetime
 import os
 import sys
@@ -15,25 +14,28 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from app.auth import get_password_hash
-from app.config import settings
 
-async def init_database():
+def init_database():
     """Initialize database with clean state and default admin"""
     
+    # Configuration
+    MONGODB_URL = os.getenv('MONGODB_URL', 'mongodb://localhost:27017')
+    DATABASE_NAME = os.getenv('DATABASE_NAME', 'neighborwatch')
+    
     # Connect to MongoDB
-    client = AsyncIOMotorClient(settings.MONGODB_URL)
-    db = client[settings.DATABASE_NAME]
+    client = MongoClient(MONGODB_URL)
+    db = client[DATABASE_NAME]
     
     print("🔄 Initializing database...")
     
     try:
         # Clear all collections
         print("🗑️  Clearing existing data...")
-        await db.users.delete_many({})
-        await db.reports.delete_many({})
-        await db.clusters.delete_many({})
-        await db.chats.delete_many({})
-        await db.alerts.delete_many({})
+        db.users.delete_many({})
+        db.reports.delete_many({})
+        db.clusters.delete_many({})
+        db.chats.delete_many({})
+        db.alerts.delete_many({})
         print("✅ All collections cleared")
         
         # Create default admin user
@@ -49,7 +51,7 @@ async def init_database():
             "created_at": datetime.utcnow()
         }
         
-        result = await db.users.insert_one(admin_user)
+        result = db.users.insert_one(admin_user)
         print(f"✅ Default admin created with ID: {result.inserted_id}")
         print("\n📋 Admin Credentials:")
         print("   Email: admin@neighborwatch.rw")
@@ -57,14 +59,14 @@ async def init_database():
         
         # Create indexes for better performance
         print("\n🔧 Creating database indexes...")
-        await db.users.create_index("email", unique=True)
-        await db.users.create_index("role")
-        await db.reports.create_index("timestamp")
-        await db.reports.create_index("status")
-        await db.reports.create_index("user_id")
-        await db.clusters.create_index("timestamp")
-        await db.chats.create_index("report_id")
-        await db.alerts.create_index("timestamp")
+        db.users.create_index("email", unique=True)
+        db.users.create_index("role")
+        db.reports.create_index("timestamp")
+        db.reports.create_index("status")
+        db.reports.create_index("user_id")
+        db.clusters.create_index("timestamp")
+        db.chats.create_index("report_id")
+        db.alerts.create_index("timestamp")
         print("✅ Indexes created")
         
         print("\n✨ Database initialization complete!")
@@ -72,6 +74,8 @@ async def init_database():
         
     except Exception as e:
         print(f"❌ Error during initialization: {e}")
+        import traceback
+        traceback.print_exc()
     finally:
         client.close()
 
@@ -83,6 +87,6 @@ if __name__ == "__main__":
     confirm = input("\nType 'yes' to continue: ")
     
     if confirm.lower() == 'yes':
-        asyncio.run(init_database())
+        init_database()
     else:
         print("❌ Initialization cancelled")
