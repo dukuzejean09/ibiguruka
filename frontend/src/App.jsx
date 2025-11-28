@@ -7,9 +7,14 @@ import {
 import { useAuthStore } from "./store/authStore";
 
 // Auth Pages
+import SplashScreen from "./pages/auth/SplashScreen";
+import WelcomeScreen from "./pages/auth/WelcomeScreen";
 import LoginPage from "./pages/auth/LoginPage";
 import AdminLoginPage from "./pages/auth/AdminLoginPage";
 import PoliceLoginPage from "./pages/auth/PoliceLoginPage";
+
+// Public Pages
+import CommunitySafetyMap from "./pages/public/CommunitySafetyMap";
 
 // Citizen Pages
 import CitizenLayout from "./layouts/CitizenLayout";
@@ -51,6 +56,9 @@ function App() {
     <Router>
       <Routes>
         {/* Public Routes */}
+        <Route path="/splash" element={<SplashScreen />} />
+        <Route path="/welcome" element={<WelcomeScreen />} />
+        <Route path="/safety-map" element={<CommunitySafetyMap />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/admin-login" element={<AdminLoginPage />} />
         <Route path="/police-login" element={<PoliceLoginPage />} />
@@ -111,12 +119,12 @@ function App() {
               role === "admin" ? (
                 <Navigate to="/admin" />
               ) : role === "police" ? (
-                <Navigate to="/police" />
+                <Navigate to="/police/dashboard" />
               ) : (
                 <Navigate to="/citizen" />
               )
             ) : (
-              <Navigate to="/login" />
+              <Navigate to="/splash" />
             )
           }
         />

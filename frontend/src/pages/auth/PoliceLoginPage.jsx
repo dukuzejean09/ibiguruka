@@ -2,7 +2,16 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import { authAPI } from "../../services/api";
-import { Shield, Mail, Lock, Eye, EyeOff, User, Phone, BadgeCheck } from "lucide-react";
+import {
+  Shield,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  User,
+  Phone,
+  BadgeCheck,
+} from "lucide-react";
 
 export default function PoliceLoginPage() {
   const navigate = useNavigate();
@@ -45,19 +54,23 @@ export default function PoliceLoginPage() {
           password: formData.password,
         });
         const { user, token, role } = response.data;
-        
+
         if (role !== "police") {
           setError("Access denied. Police credentials required.");
           setLoading(false);
           return;
         }
-        
+
         setAuth(user, role, token);
         localStorage.setItem("token", token);
         navigate("/police/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.detail || err.response?.data?.message || "Authentication failed");
+      setError(
+        err.response?.data?.detail ||
+          err.response?.data?.message ||
+          "Authentication failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -146,7 +159,10 @@ export default function PoliceLoginPage() {
                       type="text"
                       value={formData.badge_number}
                       onChange={(e) =>
-                        setFormData({ ...formData, badge_number: e.target.value })
+                        setFormData({
+                          ...formData,
+                          badge_number: e.target.value,
+                        })
                       }
                       className="w-full pl-10 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       placeholder="e.g., PO-12345"
@@ -236,7 +252,11 @@ export default function PoliceLoginPage() {
               disabled={loading}
               className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-slate-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors duration-200"
             >
-              {loading ? "Please wait..." : isRegister ? "Register as Police Officer" : "Login"}
+              {loading
+                ? "Please wait..."
+                : isRegister
+                ? "Register as Police Officer"
+                : "Login"}
             </button>
           </form>
 

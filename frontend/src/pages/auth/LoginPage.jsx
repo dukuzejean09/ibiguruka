@@ -157,10 +157,12 @@ export default function LoginPage() {
                   onClick={() => setIsRegister(!isRegister)}
                   className="text-blue-400 hover:text-blue-300"
                 >
-                  {isRegister ? "Already have an account?" : "Create new account"}
+                  {isRegister
+                    ? "Already have an account?"
+                    : "Create new account"}
                 </button>
               </div>
-              
+
               <div className="flex items-center justify-center gap-3 text-sm pt-2 border-t border-slate-700">
                 <button
                   onClick={goToPoliceLogin}

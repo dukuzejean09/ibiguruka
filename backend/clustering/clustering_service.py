@@ -10,7 +10,7 @@ import numpy as np
 MONGODB_URL = os.getenv('MONGODB_URL', 'mongodb://localhost:27017')
 DATABASE_NAME = os.getenv('DATABASE_NAME', 'neighborwatch')
 API_URL = os.getenv('API_URL', 'http://localhost:8000')
-REFRESH_INTERVAL = 600  # 10 minutes
+REFRESH_INTERVAL = 1800  # 30 minutes (as per project scope)
 
 def connect_to_db():
     """Connect to MongoDB"""
