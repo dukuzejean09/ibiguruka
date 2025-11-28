@@ -3,20 +3,52 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from contextlib import asynccontextmanager
 from typing import Optional
+from datetime import datetime
 import os
 
 from .routes import auth, reports, clusters, chats, alerts, admin, heatmap
 from .database import database
 from .config import settings
+from .auth import get_password_hash
 
+async def create_default_admin():
+    """Create default admin user if not exists"""
+    try:
+        users_collection = database.db["users"]
+        
+        # Check if admin exists
+        existing_admin = await users_collection.find_one({"email": "admin@neighborwatch.rw"})
+        
+        if not existing_admin:
+            admin_user = {
+                "email": "admin@neighborwatch.rw",
+                "hashed_password": get_password_hash("admin@123A"),
+                "full_name": "System Administrator",
+                "phone": "+250788000000",
+                "role": "admin",
+                "is_verified": True,
+                "is_active": True,
+                "created_at": datetime.utcnow()
+            }
+            await users_collection.insert_one(admin_user)
+            print("✅ Default admin user created: admin@neighborwatch.rw / admin@123A")
+        else:
+            print("ℹ️  Default admin user already exists")
+    except Exception as e:
+        print(f"⚠️  Error creating default admin: {e}")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
     await database.connect()
     print("✅ Database connected")
+    
+    # Create default admin user
+    await create_default_admin()
+    
     yield
     # Shutdown
     await database.disconnect()
+    print("👋 Database disconnected")
     print("👋 Database disconnected")
 
 app = FastAPI(

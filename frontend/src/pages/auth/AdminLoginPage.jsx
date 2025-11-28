@@ -146,11 +146,13 @@ export default function AdminLoginPage() {
           </button>
 
           <div className="mt-8 p-4 bg-slate-800 rounded-lg border border-slate-700">
-            <p className="text-sm text-slate-400 mb-2">Demo Credentials:</p>
+            <p className="text-sm text-slate-400 mb-2">
+              Default Admin Credentials:
+            </p>
             <p className="text-xs text-slate-500">
-              Police: officer@police.rw / password123
+              Email: admin@neighborwatch.rw
               <br />
-              Admin: admin@police.rw / admin123
+              Password: admin@123A
             </p>
           </div>
         </div>
