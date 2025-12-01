@@ -16,13 +16,13 @@ Write-Host "✅ Docker is running`n" -ForegroundColor Green
 
 # Stop any running containers
 Write-Host "🛑 Stopping existing containers..." -ForegroundColor Cyan
-docker-compose down 2>&1 | Out-Null
+docker-compose -f docker-compose.ghcr.yml down 2>&1 | Out-Null
 
 # Start the containers
 Write-Host "🚀 Starting containers..." -ForegroundColor Cyan
-Write-Host "   This may take 3-5 minutes on first run (downloading and building images)`n" -ForegroundColor Yellow
+Write-Host "   This will pull images from GitHub Container Registry`n" -ForegroundColor Yellow
 
-docker-compose up -d --build
+docker-compose -f docker-compose.ghcr.yml up -d
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host "`n✅ Containers started successfully!`n" -ForegroundColor Green
@@ -33,7 +33,7 @@ if ($LASTEXITCODE -eq 0) {
     
     # Check container status
     Write-Host "`n📊 Container Status:" -ForegroundColor Cyan
-    docker-compose ps
+    docker-compose -f docker-compose.ghcr.yml ps
     
     Write-Host "`n🌐 Access URLs:" -ForegroundColor Green
     Write-Host "   Frontend:  http://localhost:3000" -ForegroundColor White
@@ -42,14 +42,14 @@ if ($LASTEXITCODE -eq 0) {
     
     Write-Host "`n👤 Default Admin Credentials:" -ForegroundColor Yellow
     Write-Host "   Email:     admin@neighborwatch.rw" -ForegroundColor White
-    Write-Host "   Password:  admin@123A" -ForegroundColor White
+    Write-Host "   Password:  Admin123" -ForegroundColor White
     Write-Host "   Login at:  http://localhost:3000/admin-login" -ForegroundColor White
     
     Write-Host "`n📝 Useful Commands:" -ForegroundColor Cyan
-    Write-Host "   View logs:        docker-compose logs -f" -ForegroundColor White
-    Write-Host "   Stop containers:  docker-compose down" -ForegroundColor White
-    Write-Host "   Restart:          docker-compose restart" -ForegroundColor White
-    Write-Host "   View status:      docker-compose ps" -ForegroundColor White
+    Write-Host "   View logs:        docker-compose -f docker-compose.ghcr.yml logs -f" -ForegroundColor White
+    Write-Host "   Stop containers:  docker-compose -f docker-compose.ghcr.yml down" -ForegroundColor White
+    Write-Host "   Restart:          docker-compose -f docker-compose.ghcr.yml restart" -ForegroundColor White
+    Write-Host "   View status:      docker-compose -f docker-compose.ghcr.yml ps" -ForegroundColor White
     
     Write-Host "`n🎉 Application is ready! Open http://localhost:3000`n" -ForegroundColor Green
     
