@@ -1,22 +1,33 @@
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List
+from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic_core import core_schema
+from typing import Optional, List, Any
 from datetime import datetime
 from bson import ObjectId
 
-class PyObjectId(ObjectId):
+class PyObjectId(str):
     @classmethod
-    def __get_validators__(cls):
-        yield cls.validate
+    def __get_pydantic_core_schema__(cls, _source_type: Any, _handler):
+        return core_schema.json_or_python_schema(
+            json_schema=core_schema.str_schema(),
+            python_schema=core_schema.union_schema([
+                core_schema.is_instance_schema(ObjectId),
+                core_schema.chain_schema([
+                    core_schema.str_schema(),
+                    core_schema.no_info_plain_validator_function(cls.validate),
+                ])
+            ]),
+            serialization=core_schema.plain_serializer_function_ser_schema(
+                lambda x: str(x)
+            ),
+        )
 
     @classmethod
     def validate(cls, v):
+        if isinstance(v, ObjectId):
+            return v
         if not ObjectId.is_valid(v):
             raise ValueError("Invalid objectid")
         return ObjectId(v)
-
-    @classmethod
-    def __modify_schema__(cls, field_schema):
-        field_schema.update(type="string")
 
 # User Models
 class UserCreate(BaseModel):
@@ -30,6 +41,8 @@ class UserLogin(BaseModel):
     password: str
 
 class User(BaseModel):
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+    
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     email: str
     phone: Optional[str] = None
@@ -38,10 +51,6 @@ class User(BaseModel):
     verified: bool = False
     blocked: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
 
 # Report Models
 class Location(BaseModel):
@@ -56,6 +65,8 @@ class ReportCreate(BaseModel):
     userId: Optional[str] = "anonymous"
 
 class Report(BaseModel):
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+    
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     category: str
     description: str
@@ -66,13 +77,11 @@ class Report(BaseModel):
     status: str = "new"
     credibilityScore: float = 0.0
     flagged: bool = False
-    
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
 
 # Cluster Models
 class Cluster(BaseModel):
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+    
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     cluster_id: int
     center: Location
@@ -80,10 +89,6 @@ class Cluster(BaseModel):
     points: List[str]  # Report IDs
     riskLevel: str = "medium"
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
 
 # Chat Models
 class Message(BaseModel):
@@ -96,16 +101,14 @@ class ChatCreate(BaseModel):
     reportId: str
 
 class Chat(BaseModel):
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+    
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     reportId: str
     participants: List[str] = []
     lastMessage: str = ""
     lastMessageTime: datetime = Field(default_factory=datetime.utcnow)
     createdAt: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
 
 # Alert Models
 class AlertCreate(BaseModel):
@@ -113,15 +116,13 @@ class AlertCreate(BaseModel):
     area: dict  # {center: {lat, lng}, radius: float}
 
 class Alert(BaseModel):
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+    
     id: Optional[PyObjectId] = Field(alias="_id", default=None)
     message: str
     area: dict
     senderId: str
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    
-    class Config:
-        populate_by_name = True
-        json_encoders = {ObjectId: str}
 
 # Token Models
 class Token(BaseModel):

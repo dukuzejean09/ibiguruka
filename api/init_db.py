@@ -42,12 +42,12 @@ def init_database():
         print("👤 Creating default admin user...")
         admin_user = {
             "email": "admin@neighborwatch.rw",
-            "hashed_password": get_password_hash("admin@123A"),
+            "password_hash": get_password_hash("Admin123"),
             "full_name": "System Administrator",
             "phone": "+250788000000",
             "role": "admin",
-            "is_verified": True,
-            "is_active": True,
+            "verified": True,
+            "blocked": False,
             "created_at": datetime.utcnow()
         }
         
@@ -55,7 +55,7 @@ def init_database():
         print(f"✅ Default admin created with ID: {result.inserted_id}")
         print("\n📋 Admin Credentials:")
         print("   Email: admin@neighborwatch.rw")
-        print("   Password: admin@123A")
+        print("   Password: Admin123")
         
         # Create indexes for better performance
         print("\n🔧 Creating database indexes...")
@@ -80,13 +80,20 @@ def init_database():
         client.close()
 
 if __name__ == "__main__":
+    import sys
+    
     print("=" * 60)
     print("  NeighborWatch Connect - Database Initialization")
     print("=" * 60)
     print("\n⚠️  WARNING: This will DELETE all existing data!")
-    confirm = input("\nType 'yes' to continue: ")
     
-    if confirm.lower() == 'yes':
+    # Allow --force flag to skip confirmation
+    if "--force" in sys.argv:
         init_database()
     else:
-        print("❌ Initialization cancelled")
+        confirm = input("\nType 'yes' to continue: ")
+        
+        if confirm.lower() == 'yes':
+            init_database()
+        else:
+            print("❌ Initialization cancelled")

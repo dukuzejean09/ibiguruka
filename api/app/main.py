@@ -22,16 +22,16 @@ async def create_default_admin():
         if not existing_admin:
             admin_user = {
                 "email": "admin@neighborwatch.rw",
-                "hashed_password": get_password_hash("admin@123A"),
+                "password_hash": get_password_hash("Admin123"),
                 "full_name": "System Administrator",
                 "phone": "+250788000000",
                 "role": "admin",
-                "is_verified": True,
-                "is_active": True,
+                "verified": True,
+                "blocked": False,
                 "created_at": datetime.utcnow()
             }
             await users_collection.insert_one(admin_user)
-            print("✅ Default admin user created: admin@neighborwatch.rw / admin@123A")
+            print("✅ Default admin user created: admin@neighborwatch.rw / Admin123")
         else:
             print("ℹ️  Default admin user already exists")
     except Exception as e:
