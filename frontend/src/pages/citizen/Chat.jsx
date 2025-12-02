@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
-import { Send, MessageCircle } from "lucide-react";
+import { Send, MessageCircle, User, Shield } from "lucide-react";
 import { chatAPI } from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 
@@ -14,6 +14,7 @@ export default function CitizenChat() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [loading, setLoading] = useState(false);
+  const [chatInfo, setChatInfo] = useState(null);
 
   useEffect(() => {
     loadChats();
@@ -44,7 +45,11 @@ export default function CitizenChat() {
   const loadMessages = async (chatId) => {
     try {
       const response = await chatAPI.getMessages(chatId);
-      setMessages(response.data || []);
+      setMessages(response.data?.messages || response.data || []);
+      setChatInfo({
+        reportReference: response.data?.reportReference,
+        reportCategory: response.data?.reportCategory,
+      });
     } catch (error) {
       console.error("Failed to load messages:", error);
     }
@@ -56,16 +61,16 @@ export default function CitizenChat() {
 
     setLoading(true);
     try {
-      await chatAPI.send(activeChat.id, newMessage);
-      setMessages([
-        ...messages,
-        {
-          id: Date.now(),
-          text: newMessage,
-          senderId: user.id,
-          timestamp: new Date().toISOString(),
-        },
-      ]);
+      const response = await chatAPI.send(activeChat.id, newMessage);
+      // Add the message from response or create one
+      const newMsg = response.data?.message || {
+        text: newMessage,
+        senderId: user?.id,
+        senderName: user?.name || "You",
+        senderRole: "citizen",
+        timestamp: new Date().toISOString(),
+      };
+      setMessages([...messages, newMsg]);
       setNewMessage("");
     } catch (error) {
       console.error("Failed to send message:", error);
@@ -74,15 +79,19 @@ export default function CitizenChat() {
     }
   };
 
+  const isMyMessage = (msg) => {
+    return msg.senderId === user?.id || msg.senderRole === "citizen";
+  };
+
   return (
-    <div className="max-w-6xl mx-auto h-[calc(100vh-12rem)]">
+    <div className="h-[calc(100vh-10rem)]">
       <div className="bg-slate-800 rounded-lg border border-slate-700 h-full flex overflow-hidden">
         {/* Chat List */}
-        <div className="w-80 border-r border-slate-700 flex flex-col">
+        <div className="w-72 border-r border-slate-700 flex flex-col hidden sm:flex">
           <div className="p-4 border-b border-slate-700">
-            <h2 className="text-lg font-bold text-white">Conversations</h2>
+            <h2 className="text-lg font-bold text-white">My Conversations</h2>
           </div>
-          <div className="flex-1 overflow-y-auto custom-scrollbar">
+          <div className="flex-1 overflow-y-auto">
             {chats.length > 0 ? (
               chats.map((chat) => (
                 <button
@@ -92,14 +101,24 @@ export default function CitizenChat() {
                     activeChat?.id === chat.id ? "bg-slate-700" : ""
                   }`}
                 >
-                  <div className="font-medium text-white mb-1">
-                    Report #{chat.reportId}
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-white text-sm">
+                      {chat.reportReference || `Report #${chat.reportId?.slice(-6)}`}
+                    </span>
+                    {chat.unreadCount > 0 && (
+                      <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
+                        {chat.unreadCount}
+                      </span>
+                    )}
                   </div>
+                  {chat.reportCategory && (
+                    <p className="text-xs text-blue-400 mb-1">{chat.reportCategory}</p>
+                  )}
                   <p className="text-sm text-slate-400 truncate">
                     {chat.lastMessage}
                   </p>
                   <span className="text-xs text-slate-500">
-                    {new Date(chat.lastMessageTime).toLocaleTimeString()}
+                    {new Date(chat.lastMessageTime).toLocaleDateString()}
                   </span>
                 </button>
               ))
@@ -109,7 +128,10 @@ export default function CitizenChat() {
                   size={48}
                   className="text-slate-600 mx-auto mb-4"
                 />
-                <p className="text-slate-400">No conversations yet</p>
+                <p className="text-slate-400 text-sm">No conversations yet</p>
+                <p className="text-slate-500 text-xs mt-2">
+                  Chats are created when police respond to your reports
+                </p>
               </div>
             )}
           </div>
@@ -119,31 +141,51 @@ export default function CitizenChat() {
         <div className="flex-1 flex flex-col">
           {activeChat ? (
             <>
-              <div className="p-4 border-b border-slate-700">
-                <h3 className="font-semibold text-white">
-                  Report #{activeChat.reportId}
-                </h3>
-                <p className="text-sm text-slate-400">Chat with Police</p>
+              <div className="p-4 border-b border-slate-700 bg-slate-800/50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                    <Shield size={20} className="text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">
+                      {chatInfo?.reportReference || `Report #${activeChat.reportId?.slice(-6)}`}
+                    </h3>
+                    <p className="text-sm text-slate-400">
+                      {chatInfo?.reportCategory || "Chat with Police"} • {activeChat.status || "Active"}
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-                {messages.map((msg) => (
+              <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                {messages.map((msg, idx) => (
                   <div
-                    key={msg.id}
+                    key={idx}
                     className={`flex ${
-                      msg.senderId === user.id ? "justify-end" : "justify-start"
+                      isMyMessage(msg) ? "justify-end" : "justify-start"
                     }`}
                   >
                     <div
-                      className={`max-w-xs px-4 py-2 rounded-lg ${
-                        msg.senderId === user.id
-                          ? "bg-blue-600 text-white"
-                          : "bg-slate-700 text-white"
+                      className={`max-w-[75%] rounded-lg ${
+                        msg.senderId === "system"
+                          ? "bg-slate-700/50 text-slate-400 text-center text-xs py-2 px-4"
+                          : isMyMessage(msg)
+                          ? "bg-blue-600 text-white px-4 py-2"
+                          : "bg-slate-700 text-white px-4 py-2"
                       }`}
                     >
+                      {msg.senderId !== "system" && !isMyMessage(msg) && (
+                        <p className="text-xs text-blue-400 mb-1 flex items-center gap-1">
+                          <Shield size={12} />
+                          {msg.senderName || "Police Officer"}
+                        </p>
+                      )}
                       <p>{msg.text}</p>
                       <span className="text-xs opacity-70 mt-1 block">
-                        {new Date(msg.timestamp).toLocaleTimeString()}
+                        {new Date(msg.timestamp).toLocaleTimeString([], {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
                       </span>
                     </div>
                   </div>

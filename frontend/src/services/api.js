@@ -33,6 +33,8 @@ export const reportsAPI = {
   getAll: (filters) => apiClient.get("/reports/list", { params: filters }),
   getById: (id) => apiClient.get(`/reports/${id}`),
   update: (id, data) => apiClient.put(`/reports/${id}`, data),
+  searchByReference: (refNum) => apiClient.get(`/reports/search/${refNum}`),
+  getStats: () => apiClient.get("/reports/stats"),
 };
 
 // Clustering APIs
@@ -44,10 +46,10 @@ export const clustersAPI = {
 // Chat APIs
 export const chatAPI = {
   start: (reportId) => apiClient.post("/chats/start", { reportId }),
-  send: (chatId, message) =>
-    apiClient.post("/chats/send", { chatId, text: message }),
+  send: (chatId, text) => apiClient.post("/chats/send", { chatId, text }),
   getMessages: (chatId) => apiClient.get(`/chats/${chatId}/messages`),
   getAll: () => apiClient.get("/chats/list"),
+  close: (chatId) => apiClient.put(`/chats/${chatId}/close`),
 };
 
 // Alerts APIs
@@ -64,6 +66,7 @@ export const adminAPI = {
   updateUser: (userId, data) => apiClient.put(`/admin/users/${userId}`, data),
   deleteUser: (userId) => apiClient.delete(`/admin/users/${userId}`),
   getStats: () => apiClient.get("/admin/stats"),
+  getPendingRoles: () => apiClient.get("/admin/users/pending-roles"),
 };
 
 // Heatmap APIs

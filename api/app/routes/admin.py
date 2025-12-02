@@ -155,15 +155,47 @@ async def get_admin_stats(current_user: dict = Depends(get_current_active_user))
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     
-    from ..database import get_reports_collection, get_clusters_collection
+    from ..database import get_reports_collection, get_clusters_collection, get_chats_collection, get_alerts_collection
+    from datetime import timedelta
     
     users_collection = get_users_collection()
     reports_collection = get_reports_collection()
     clusters_collection = get_clusters_collection()
+    chats_collection = get_chats_collection()
+    alerts_collection = get_alerts_collection()
     
+    # Basic counts
     total_users = await users_collection.count_documents({})
     total_reports = await reports_collection.count_documents({})
     active_clusters = await clusters_collection.count_documents({})
+    total_chats = await chats_collection.count_documents({})
+    total_alerts = await alerts_collection.count_documents({})
+    
+    # User breakdown by role
+    citizens = await users_collection.count_documents({"role": "citizen"})
+    police = await users_collection.count_documents({"role": "police"})
+    admins = await users_collection.count_documents({"role": "admin"})
+    pending_police = await users_collection.count_documents({
+        "requested_role": "police",
+        "role_approved": False
+    })
+    
+    # Report breakdown by status
+    new_reports = await reports_collection.count_documents({"status": "new"})
+    investigating = await reports_collection.count_documents({"status": "investigating"})
+    resolved_reports = await reports_collection.count_documents({"status": "resolved"})
+    
+    # Reports this week
+    week_ago = datetime.utcnow() - timedelta(days=7)
+    reports_this_week = await reports_collection.count_documents({
+        "timestamp": {"$gte": week_ago}
+    })
+    
+    # Reports today
+    today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+    reports_today = await reports_collection.count_documents({
+        "timestamp": {"$gte": today_start}
+    })
     
     # Get last cluster run time
     last_cluster = await clusters_collection.find_one(
@@ -172,9 +204,35 @@ async def get_admin_stats(current_user: dict = Depends(get_current_active_user))
     )
     last_cluster_run = last_cluster.get("timestamp") if last_cluster else None
     
+    # Top categories
+    category_pipeline = [
+        {"$group": {"_id": "$category", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 5}
+    ]
+    top_categories = []
+    async for cat in reports_collection.aggregate(category_pipeline):
+        top_categories.append({"category": cat["_id"], "count": cat["count"]})
+    
     return {
         "totalUsers": total_users,
         "totalReports": total_reports,
         "activeClusters": active_clusters,
-        "lastClusterRun": last_cluster_run
+        "totalChats": total_chats,
+        "totalAlerts": total_alerts,
+        "lastClusterRun": last_cluster_run,
+        "users": {
+            "citizens": citizens,
+            "police": police,
+            "admins": admins,
+            "pendingPolice": pending_police
+        },
+        "reports": {
+            "new": new_reports,
+            "investigating": investigating,
+            "resolved": resolved_reports,
+            "thisWeek": reports_this_week,
+            "today": reports_today
+        },
+        "topCategories": top_categories
     }
