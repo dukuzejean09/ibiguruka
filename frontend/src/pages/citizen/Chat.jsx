@@ -103,7 +103,8 @@ export default function CitizenChat() {
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium text-white text-sm">
-                      {chat.reportReference || `Report #${chat.reportId?.slice(-6)}`}
+                      {chat.reportReference ||
+                        `Report #${chat.reportId?.slice(-6)}`}
                     </span>
                     {chat.unreadCount > 0 && (
                       <span className="bg-blue-600 text-white text-xs px-2 py-0.5 rounded-full">
@@ -112,7 +113,9 @@ export default function CitizenChat() {
                     )}
                   </div>
                   {chat.reportCategory && (
-                    <p className="text-xs text-blue-400 mb-1">{chat.reportCategory}</p>
+                    <p className="text-xs text-blue-400 mb-1">
+                      {chat.reportCategory}
+                    </p>
                   )}
                   <p className="text-sm text-slate-400 truncate">
                     {chat.lastMessage}
@@ -148,10 +151,12 @@ export default function CitizenChat() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-white">
-                      {chatInfo?.reportReference || `Report #${activeChat.reportId?.slice(-6)}`}
+                      {chatInfo?.reportReference ||
+                        `Report #${activeChat.reportId?.slice(-6)}`}
                     </h3>
                     <p className="text-sm text-slate-400">
-                      {chatInfo?.reportCategory || "Chat with Police"} • {activeChat.status || "Active"}
+                      {chatInfo?.reportCategory || "Chat with Police"} •{" "}
+                      {activeChat.status || "Active"}
                     </p>
                   </div>
                 </div>

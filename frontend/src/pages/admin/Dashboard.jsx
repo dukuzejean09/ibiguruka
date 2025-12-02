@@ -174,7 +174,9 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between pt-2 border-t border-slate-700">
                 <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse"></div>
-                  <span className="text-amber-400">Pending Police Approval</span>
+                  <span className="text-amber-400">
+                    Pending Police Approval
+                  </span>
                 </div>
                 <span className="text-amber-400 font-semibold">
                   {stats.users.pendingPolice}
