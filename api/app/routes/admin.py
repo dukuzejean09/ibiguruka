@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional
 from datetime import datetime, timedelta
 from bson import ObjectId
-from ..database import get_users_collection
+from ..database import get_users_collection, get_config_collection
 from ..auth import get_current_active_user
+from ..models import SystemConfig
 
 router = APIRouter()
 
@@ -237,3 +238,48 @@ async def get_admin_stats(current_user: dict = Depends(get_current_active_user))
         },
         "topCategories": top_categories
     }
+
+@router.get("/config", response_model=SystemConfig)
+async def get_system_config(current_user: dict = Depends(get_current_active_user)):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    config_collection = get_config_collection()
+    config = await config_collection.find_one({})
+    
+    if not config:
+        # Create default config
+        default_config = SystemConfig()
+        await config_collection.insert_one(default_config.model_dump(by_alias=True))
+        return default_config
+    
+    config["id"] = str(config["_id"])
+    del config["_id"]
+    return config
+
+@router.put("/config")
+async def update_system_config(
+    config_update: SystemConfig,
+    current_user: dict = Depends(get_current_active_user)
+):
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    config_collection = get_config_collection()
+    
+    # Ensure config exists
+    existing = await config_collection.find_one({})
+    
+    update_data = config_update.model_dump(exclude={"id", "updatedAt", "updatedBy"})
+    update_data["updatedAt"] = datetime.utcnow()
+    update_data["updatedBy"] = current_user.get("email", "admin")
+    
+    if existing:
+        await config_collection.update_one(
+            {"_id": existing["_id"]},
+            {"$set": update_data}
+        )
+    else:
+        await config_collection.insert_one(update_data)
+    
+    return {"message": "Configuration updated successfully"}

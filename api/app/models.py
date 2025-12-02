@@ -137,3 +137,21 @@ class Token(BaseModel):
     token_type: str = "bearer"
     user: dict
     role: str
+
+# System Config Models
+class SystemConfig(BaseModel):
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+    
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    categories: List[str] = [
+        "Theft", "Vandalism", "Accident", "Fire", "Assault", 
+        "Suspicious Activity", "Public Disturbance", "Traffic Hazard", "Other"
+    ]
+    clustering: dict = {
+        "refreshInterval": 30,  # minutes
+        "minSamples": 3,
+        "epsilon": 0.005,  # ~500m
+        "enabled": True
+    }
+    updatedAt: datetime = Field(default_factory=datetime.utcnow)
+    updatedBy: str = "system"

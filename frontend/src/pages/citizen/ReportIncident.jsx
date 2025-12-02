@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
-import { Camera, MapPin, Send, Mic } from "lucide-react";
-import { reportsAPI } from "../../services/api";
+import { Camera, MapPin, Send, Mic, Loader2 } from "lucide-react";
+import { reportsAPI, adminAPI } from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import L from "leaflet";
 
@@ -15,7 +15,8 @@ L.Icon.Default.mergeOptions({
   shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 });
 
-const categories = [
+// Default categories (used as fallback)
+const defaultCategories = [
   "Theft",
   "Vandalism",
   "Accident",
@@ -44,6 +45,7 @@ export default function ReportIncident() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [categories, setCategories] = useState(defaultCategories);
 
   const [formData, setFormData] = useState({
     category: "",
@@ -64,7 +66,21 @@ export default function ReportIncident() {
         (err) => console.error("Location error:", err)
       );
     }
+
+    // Load categories from config
+    loadCategories();
   }, []);
+
+  const loadCategories = async () => {
+    try {
+      const response = await adminAPI.getConfig();
+      if (response.data?.categories?.length > 0) {
+        setCategories(response.data.categories);
+      }
+    } catch (error) {
+      console.error("Failed to load categories, using defaults:", error);
+    }
+  };
 
   const handleVoiceInput = () => {
     if (

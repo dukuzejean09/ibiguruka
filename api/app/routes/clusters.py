@@ -1,12 +1,27 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 from datetime import datetime, timedelta
-from ..database import get_reports_collection, get_clusters_collection
+from ..database import get_reports_collection, get_clusters_collection, get_config_collection
 from sklearn.cluster import DBSCAN
 import numpy as np
 from bson import ObjectId
 
 router = APIRouter()
+
+async def get_clustering_params():
+    """Fetch clustering parameters from system config"""
+    config_collection = get_config_collection()
+    config = await config_collection.find_one({})
+    
+    if config and "clustering" in config:
+        return {
+            "eps": config["clustering"].get("epsilon", 0.005),
+            "min_samples": config["clustering"].get("minSamples", 3),
+            "enabled": config["clustering"].get("enabled", True)
+        }
+    
+    # Default parameters
+    return {"eps": 0.005, "min_samples": 3, "enabled": True}
 
 @router.get("/get", response_model=List[dict])
 async def get_latest_clusters():
@@ -26,11 +41,23 @@ async def get_latest_clusters():
     
     return clusters
 
+@router.get("/params")
+async def get_cluster_params():
+    """Get current clustering parameters"""
+    params = await get_clustering_params()
+    return params
+
 @router.post("/refresh")
 async def refresh_clusters():
-    """Run DBSCAN clustering on recent reports"""
+    """Run DBSCAN clustering on recent reports using configurable parameters"""
     reports_collection = get_reports_collection()
     clusters_collection = get_clusters_collection()
+    
+    # Get clustering parameters from config
+    params = await get_clustering_params()
+    
+    if not params["enabled"]:
+        return {"message": "Clustering is disabled", "clusters": 0}
     
     # Get reports from last 24 hours
     twenty_four_hours_ago = datetime.utcnow() - timedelta(hours=24)
@@ -48,8 +75,8 @@ async def refresh_clusters():
     # Extract coordinates
     coords = np.array([[r["location"]["lat"], r["location"]["lng"]] for r in reports])
     
-    # Run DBSCAN (eps ~0.005 degrees ≈ 500m, min_samples=3)
-    db = DBSCAN(eps=0.005, min_samples=3).fit(coords)
+    # Run DBSCAN with configurable parameters
+    db = DBSCAN(eps=params["eps"], min_samples=params["min_samples"]).fit(coords)
     labels = db.labels_
     
     # Group clusters

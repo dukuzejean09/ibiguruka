@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 from bson import ObjectId
 from pydantic import BaseModel
 import random
@@ -55,6 +55,7 @@ async def get_reports(
     status: Optional[str] = None,
     priority: Optional[str] = None,
     search: Optional[str] = None,
+    timeframe: Optional[str] = None,  # "24h", "7d", "30d"
     limit: int = Query(100, le=1000),
     current_user: dict = Depends(get_current_active_user)
 ):
@@ -69,12 +70,26 @@ async def get_reports(
     if user_role == "citizen":
         query["userId"] = user_id
     
-    if category:
+    if category and category != "all":
         query["category"] = category
-    if status:
-        query["status"] = status
+    if status and status != "all":
+        if status == "new,investigating":
+            query["status"] = {"$in": ["new", "investigating"]}
+        else:
+            query["status"] = status
     if priority:
         query["priority"] = priority
+    
+    # Timeframe filter
+    if timeframe:
+        now = datetime.utcnow()
+        if timeframe == "24h":
+            query["timestamp"] = {"$gte": now - timedelta(hours=24)}
+        elif timeframe == "7d":
+            query["timestamp"] = {"$gte": now - timedelta(days=7)}
+        elif timeframe == "30d":
+            query["timestamp"] = {"$gte": now - timedelta(days=30)}
+    
     if search:
         query["$or"] = [
             {"referenceNumber": {"$regex": search, "$options": "i"}},

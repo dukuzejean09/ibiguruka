@@ -41,6 +41,7 @@ export const reportsAPI = {
 export const clustersAPI = {
   getLatest: () => apiClient.get("/clusters/get"),
   refresh: () => apiClient.post("/clusters/refresh"),
+  getParams: () => apiClient.get("/clusters/params"),
 };
 
 // Chat APIs
@@ -67,6 +68,8 @@ export const adminAPI = {
   deleteUser: (userId) => apiClient.delete(`/admin/users/${userId}`),
   getStats: () => apiClient.get("/admin/stats"),
   getPendingRoles: () => apiClient.get("/admin/users/pending-roles"),
+  getConfig: () => apiClient.get("/admin/config"),
+  updateConfig: (config) => apiClient.put("/admin/config", config),
 };
 
 // Heatmap APIs

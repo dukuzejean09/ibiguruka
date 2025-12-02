@@ -34,3 +34,6 @@ def get_chats_collection():
 
 def get_alerts_collection():
     return database.get_collection("alerts")
+
+def get_config_collection():
+    return database.get_collection("config")
