@@ -1,0 +1,56 @@
+version: "3.8"
+
+# Docker Compose to use images from Docker Hub
+# No local building required!
+
+services:
+  mongodb:
+    image: mongo:7
+    container_name: neighborwatch-mongodb
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: neighborwatch
+    networks:
+      - neighborwatch-network
+
+  api:
+    image: ${DOCKER_USERNAME}/neighborwatch-api:latest
+    container_name: neighborwatch-api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - DATABASE_NAME=neighborwatch
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - DEBUG=True
+    depends_on:
+      - mongodb
+    networks:
+      - neighborwatch-network
+
+  clustering:
+    image: ${DOCKER_USERNAME}/neighborwatch-clustering:latest
+    container_name: neighborwatch-clustering
+    restart: unless-stopped
+    environment:
+      - MONGODB_URL=mongodb://mongodb:27017
+      - DATABASE_NAME=neighborwatch
+      - API_URL=http://api:8000
+    depends_on:
+      - mongodb
+      - api
+    networks:
+      - neighborwatch-network
+
+networks:
+  neighborwatch-network:
+    driver: bridge
+
+volumes:
+  mongodb_data:
+    driver: local

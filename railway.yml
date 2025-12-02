@@ -1,0 +1,37 @@
+# Railway Deployment Configuration
+# This tells Railway how to deploy each service from GHCR
+
+services:
+  mongodb:
+    image: mongo:7
+    environment:
+      MONGO_INITDB_DATABASE: neighborwatch
+    volumes:
+      - /data/db
+
+  api:
+    image: ghcr.io/dukuzejean09/neighborwatch-api:latest
+    environment:
+      MONGODB_URL: mongodb://mongodb:27017
+      DATABASE_NAME: neighborwatch
+      SECRET_KEY: ${SECRET_KEY}
+      DEBUG: "false"
+    ports:
+      - 8000
+    depends_on:
+      - mongodb
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  clustering:
+    image: ghcr.io/dukuzejean09/neighborwatch-clustering:latest
+    environment:
+      MONGODB_URL: mongodb://mongodb:27017
+      DATABASE_NAME: neighborwatch
+      API_URL: http://api:8000
+    depends_on:
+      - mongodb
+      - api
