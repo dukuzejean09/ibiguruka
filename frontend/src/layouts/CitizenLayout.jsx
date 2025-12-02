@@ -30,10 +30,10 @@ export default function CitizenLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-900 flex flex-col">
-      {/* Header */}
-      <header className="bg-slate-800 border-b border-slate-700 px-4 py-3">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <div className="min-h-screen bg-slate-900">
+      {/* Header - Fixed at top */}
+      <header className="fixed top-0 left-0 right-0 z-50 bg-slate-800 border-b border-slate-700 px-4 py-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
               <Shield size={24} className="text-white" />
@@ -62,40 +62,9 @@ export default function CitizenLayout() {
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="max-w-7xl mx-auto p-4">
-          <Outlet />
-        </div>
-      </main>
-
-      {/* Bottom Navigation (Mobile) */}
-      <nav className="bg-slate-800 border-t border-slate-700 px-4 py-2 sm:hidden">
-        <div className="flex justify-around">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) => `
-                flex flex-col items-center gap-1 px-3 py-2 rounded-lg transition-colors
-                ${
-                  isActive
-                    ? "text-blue-500"
-                    : "text-slate-400 hover:text-slate-300"
-                }
-              `}
-            >
-              <item.icon size={20} />
-              <span className="text-xs font-medium">{item.label}</span>
-            </NavLink>
-          ))}
-        </div>
-      </nav>
-
-      {/* Side Navigation (Desktop) */}
-      <nav className="hidden sm:block fixed left-0 top-16 bottom-0 w-64 bg-slate-800 border-r border-slate-700 p-4">
-        <div className="space-y-2">
+      {/* Side Navigation (Desktop) - Fixed on left */}
+      <nav className="hidden sm:block fixed left-0 top-[60px] bottom-0 w-56 bg-slate-800 border-r border-slate-700 p-4 z-40 overflow-y-auto">
+        <div className="space-y-1">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -117,8 +86,50 @@ export default function CitizenLayout() {
         </div>
       </nav>
 
-      {/* Spacer for desktop sidebar */}
-      <div className="hidden sm:block w-64" />
+      {/* Main Content - With proper margins */}
+      <main className="pt-[60px] pb-20 sm:pb-4 sm:pl-56 min-h-screen">
+        <div className="p-4 max-w-6xl mx-auto">
+          <Outlet />
+        </div>
+      </main>
+
+      {/* Bottom Navigation (Mobile) - Fixed at bottom */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-800 border-t border-slate-700 px-2 py-2">
+        <div className="flex justify-around">
+          {navItems.slice(0, 5).map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.end}
+              className={({ isActive }) => `
+                flex flex-col items-center gap-1 px-2 py-1 rounded-lg transition-colors
+                ${
+                  isActive
+                    ? "text-blue-500"
+                    : "text-slate-400 hover:text-slate-300"
+                }
+              `}
+            >
+              <item.icon size={20} />
+              <span className="text-[10px] font-medium">{item.label}</span>
+            </NavLink>
+          ))}
+          <NavLink
+            to="/citizen/profile"
+            className={({ isActive }) => `
+              flex flex-col items-center gap-1 px-2 py-1 rounded-lg transition-colors
+              ${
+                isActive
+                  ? "text-blue-500"
+                  : "text-slate-400 hover:text-slate-300"
+              }
+            `}
+          >
+            <User size={20} />
+            <span className="text-[10px] font-medium">Profile</span>
+          </NavLink>
+        </div>
+      </nav>
     </div>
   );
 }

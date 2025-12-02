@@ -57,13 +57,19 @@ async def get_user(
     except Exception as e:
         raise HTTPException(status_code=400, detail="Invalid user ID")
 
+from pydantic import BaseModel
+
+class UserUpdate(BaseModel):
+    role: Optional[str] = None
+    verified: Optional[bool] = None
+    blocked: Optional[bool] = None
+    role_approved: Optional[bool] = None
+    requested_role: Optional[str] = None
+
 @router.put("/users/{user_id}")
 async def update_user(
     user_id: str,
-    role: Optional[str] = None,
-    verified: Optional[bool] = None,
-    blocked: Optional[bool] = None,
-    role_approved: Optional[bool] = None,
+    user_update: UserUpdate,
     current_user: dict = Depends(get_current_active_user)
 ):
     if current_user.get("role") != "admin":
@@ -74,17 +80,19 @@ async def update_user(
     update_data = {}
     
     # If approving a role request
-    if role_approved and role is not None:
-        update_data["role"] = role
+    if user_update.role_approved and user_update.role is not None:
+        update_data["role"] = user_update.role
         update_data["role_approved"] = True
         update_data["requested_role"] = None  # Clear the request
-    elif role is not None:
-        update_data["role"] = role
+    elif user_update.role is not None:
+        update_data["role"] = user_update.role
     
-    if verified is not None:
-        update_data["verified"] = verified
-    if blocked is not None:
-        update_data["blocked"] = blocked
+    if user_update.verified is not None:
+        update_data["verified"] = user_update.verified
+    if user_update.blocked is not None:
+        update_data["blocked"] = user_update.blocked
+    if user_update.requested_role is not None:
+        update_data["requested_role"] = user_update.requested_role
     
     if not update_data:
         raise HTTPException(status_code=400, detail="No update data provided")

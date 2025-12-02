@@ -152,7 +152,7 @@ export default function AdminLoginPage() {
             <p className="text-xs text-slate-500">
               Email: admin@neighborwatch.rw
               <br />
-              Password: admin@123A
+              Password: Admin123
             </p>
           </div>
         </div>
