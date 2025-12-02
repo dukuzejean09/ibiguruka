@@ -151,7 +151,9 @@ export default function MyReports() {
             <p className="text-slate-400 text-xs">New</p>
           </div>
           <div className="bg-slate-800 rounded-lg p-3 border border-slate-700 text-center">
-            <p className="text-xl font-bold text-amber-400">{stats.investigating}</p>
+            <p className="text-xl font-bold text-amber-400">
+              {stats.investigating}
+            </p>
             <p className="text-slate-400 text-xs">In Progress</p>
           </div>
           <div className="bg-slate-800 rounded-lg p-3 border border-slate-700 text-center">
@@ -234,7 +236,11 @@ export default function MyReports() {
                       {report.status?.toUpperCase() || "NEW"}
                     </span>
                     {report.priority && (
-                      <span className={`text-xs ${getPriorityColor(report.priority)}`}>
+                      <span
+                        className={`text-xs ${getPriorityColor(
+                          report.priority
+                        )}`}
+                      >
                         {report.priority.toUpperCase()} PRIORITY
                       </span>
                     )}
@@ -304,28 +310,43 @@ export default function MyReports() {
               </div>
               <div>
                 <p className="text-xs text-slate-500 mb-1">Status</p>
-                <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(selectedReport.status)}`}>
+                <span
+                  className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
+                    selectedReport.status
+                  )}`}
+                >
                   {selectedReport.status?.toUpperCase()}
                 </span>
               </div>
               <div>
                 <p className="text-xs text-slate-500 mb-1">Description</p>
-                <p className="text-slate-300 text-sm">{selectedReport.description}</p>
+                <p className="text-slate-300 text-sm">
+                  {selectedReport.description}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-slate-500 mb-1">Submitted</p>
-                <p className="text-slate-300 text-sm">{formatDate(selectedReport.timestamp)}</p>
+                <p className="text-slate-300 text-sm">
+                  {formatDate(selectedReport.timestamp)}
+                </p>
               </div>
-              
+
               {/* Status History */}
               {selectedReport.statusHistory?.length > 0 && (
                 <div>
                   <p className="text-xs text-slate-500 mb-2">Status History</p>
                   <div className="space-y-2">
                     {selectedReport.statusHistory.map((entry, idx) => (
-                      <div key={idx} className="bg-slate-700/50 rounded p-2 text-xs">
+                      <div
+                        key={idx}
+                        className="bg-slate-700/50 rounded p-2 text-xs"
+                      >
                         <div className="flex items-center justify-between">
-                          <span className={`font-medium ${getStatusColor(entry.status)}`}>
+                          <span
+                            className={`font-medium ${getStatusColor(
+                              entry.status
+                            )}`}
+                          >
                             {entry.status?.toUpperCase()}
                           </span>
                           <span className="text-slate-500">
@@ -340,7 +361,7 @@ export default function MyReports() {
                   </div>
                 </div>
               )}
-              
+
               <button
                 onClick={() => {
                   handleStartChat(selectedReport.id);
