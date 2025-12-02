@@ -37,7 +37,7 @@ The system uses **DBSCAN clustering** to identify crime hotspots every 10 minute
 ### For Citizens
 
 - 🔐 **Anonymous or Authenticated Reporting** - Report incidents without creating an account or register for tracking
-- 🎤 **Voice Input** - Kinyarwanda voice-to-text for accessibility
+- 🎤 **Voice Input** - English voice-to-text for accessibility
 - 📍 **GPS Location** - Automatic location capture with manual adjustment
 - 📸 **Photo Evidence** - Upload supporting images
 - 💬 **Two-Way Chat** - Communicate with police about your reports

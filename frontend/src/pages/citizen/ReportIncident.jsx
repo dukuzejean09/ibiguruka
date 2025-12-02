@@ -77,7 +77,7 @@ export default function ReportIncident() {
     const SpeechRecognition =
       window.SpeechRecognition || window.webkitSpeechRecognition;
     const recognition = new SpeechRecognition();
-    recognition.lang = "rw-RW"; // Kinyarwanda
+    recognition.lang = "en-US"; // English
     recognition.interimResults = false;
 
     recognition.onstart = () => setIsRecording(true);

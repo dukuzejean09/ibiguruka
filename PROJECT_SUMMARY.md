@@ -17,7 +17,7 @@ Your complete web-based incident reporting and police monitoring system with DBS
   - **Police Dashboard**: Live monitoring, clustering visualization, broadcast alerts
   - **Admin Panel**: User management, analytics, system settings
 - ✅ Interactive Leaflet maps with real-time data
-- ✅ Voice input support for Kinyarwanda
+- ✅ Voice input support for English
 - ✅ Anonymous and authenticated modes
 - ✅ Real-time chat interface
 - ✅ State management with Zustand
@@ -167,7 +167,7 @@ docker-compose logs -f
 
 - ✅ Real-time platform for community reporting
 - ✅ Police hotspot visualization
-- ✅ Kinyarwanda voice input support
+- ✅ English voice input support
 - ✅ User registration/login with verification (optional)
 - ✅ Anonymous reporting (default)
 - ✅ Two-way chat for follow-up
@@ -370,7 +370,7 @@ docker-compose -f docker-compose.ghcr.yml up -d
 
 This project fully implements:
 
-- ✅ General objective: Real-time platform with Kinyarwanda voice, login, chat, admin panel
+- ✅ General objective: Real-time platform with voice input, login, chat, admin panel
 - ✅ All 5 specific objectives from your proposal
 - ✅ Waterfall methodology (requirements → design → implementation → testing)
 - ✅ All screens listed in your UI specification
@@ -475,7 +475,7 @@ See QUICKSTART.md for creating admin and police users
 As specified in your project scope:
 
 - ⚠️ Web-only (no mobile app yet)
-- ⚠️ English UI only (Kinyarwanda translations needed)
+- ✅ English UI with voice input support
 - ⚠️ Limited to non-emergency reports
 - ⚠️ Kigali pilot simulation area
 - ⚠️ No iOS support
