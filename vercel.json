@@ -1,0 +1,22 @@
+# Vercel Project Configuration
+# Place this in the root of your repository
+
+{
+  "version": 2,
+  "name": "ibiguruka",
+  "builds": [
+    {
+      "src": "frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "frontend/dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/frontend/$1"
+    }
+  ]
+}
