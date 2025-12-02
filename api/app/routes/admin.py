@@ -63,6 +63,7 @@ async def update_user(
     role: Optional[str] = None,
     verified: Optional[bool] = None,
     blocked: Optional[bool] = None,
+    role_approved: Optional[bool] = None,
     current_user: dict = Depends(get_current_active_user)
 ):
     if current_user.get("role") != "admin":
@@ -71,22 +72,58 @@ async def update_user(
     users_collection = get_users_collection()
     
     update_data = {}
-    if role is not None:
+    
+    # If approving a role request
+    if role_approved and role is not None:
         update_data["role"] = role
+        update_data["role_approved"] = True
+        update_data["requested_role"] = None  # Clear the request
+    elif role is not None:
+        update_data["role"] = role
+    
     if verified is not None:
         update_data["verified"] = verified
     if blocked is not None:
         update_data["blocked"] = blocked
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No update data provided")
     
     result = await users_collection.update_one(
         {"_id": ObjectId(user_id)},
         {"$set": update_data}
     )
     
-    if result.modified_count == 0:
+    if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
     
-    return {"message": "User updated successfully"}
+    return {"message": "User updated successfully", "updated_fields": update_data}
+
+@router.get("/users/pending-roles")
+async def get_pending_role_requests(
+    current_user: dict = Depends(get_current_active_user)
+):
+    """Get all users with pending role requests (e.g., police registration requests)"""
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    users_collection = get_users_collection()
+    
+    # Find users with requested_role set and not yet approved
+    cursor = users_collection.find({
+        "requested_role": {"$exists": True, "$ne": None},
+        "role_approved": False
+    })
+    
+    pending_users = []
+    async for user in cursor:
+        user["id"] = str(user["_id"])
+        del user["_id"]
+        if "password_hash" in user:
+            del user["password_hash"]
+        pending_users.append(user)
+    
+    return pending_users
 
 @router.delete("/users/{user_id}")
 async def delete_user(

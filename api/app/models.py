@@ -35,6 +35,9 @@ class UserCreate(BaseModel):
     password: str
     phone: Optional[str] = None
     name: Optional[str] = None
+    full_name: Optional[str] = None
+    badge_number: Optional[str] = None
+    requested_role: Optional[str] = None  # For police registration requests
 
 class UserLogin(BaseModel):
     email: str
@@ -47,7 +50,11 @@ class User(BaseModel):
     email: str
     phone: Optional[str] = None
     name: Optional[str] = None
+    full_name: Optional[str] = None
+    badge_number: Optional[str] = None
     role: str = "citizen"
+    requested_role: Optional[str] = None
+    role_approved: bool = False
     verified: bool = False
     blocked: bool = False
     created_at: datetime = Field(default_factory=datetime.utcnow)

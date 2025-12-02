@@ -1,19 +1,13 @@
 """
 Database initialization script
-- Clears all existing users
+- Clears all existing data
 - Creates default admin user
-- Clears all reports, chats, alerts, and clusters
+- Sets up database indexes
 """
 
 from pymongo import MongoClient
 from datetime import datetime
 import os
-import sys
-
-# Add parent directory to path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from app.auth import get_password_hash
 
 def init_database():
     """Initialize database with clean state and default admin"""
@@ -38,16 +32,18 @@ def init_database():
         db.alerts.delete_many({})
         print("✅ All collections cleared")
         
-        # Create default admin user
+        # Create default admin user with pre-hashed password
         print("👤 Creating default admin user...")
         admin_user = {
             "email": "admin@neighborwatch.rw",
-            "password_hash": get_password_hash("Admin123"),
+            "password_hash": "$2b$12$SMO1gqdAOjhPnQVWWHcnYO3gb2LpnN9ft86MvThnO5ljQMhp2IgOu",
             "full_name": "System Administrator",
+            "name": "System Administrator",
             "phone": "+250788000000",
             "role": "admin",
             "verified": True,
             "blocked": False,
+            "role_approved": True,
             "created_at": datetime.utcnow()
         }
         

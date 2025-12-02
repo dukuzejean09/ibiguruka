@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, status
-from datetime import timedelta
+from datetime import timedelta, datetime
 from ..models import UserCreate, UserLogin, Token, User
 from ..database import get_users_collection
 from ..auth import get_password_hash, verify_password, create_access_token
@@ -19,16 +19,25 @@ async def register(user_data: UserCreate):
             detail="Email already registered"
         )
     
-    # Create user
-    user_dict = user_data.model_dump()
-    user_dict["password_hash"] = get_password_hash(user_data.password)
-    del user_dict["password"]
-    user_dict["role"] = "citizen"
-    user_dict["verified"] = False
-    user_dict["blocked"] = False
+    # Create user document
+    user_dict = {
+        "email": user_data.email,
+        "password_hash": get_password_hash(user_data.password),
+        "phone": user_data.phone,
+        "name": user_data.name or user_data.full_name,
+        "full_name": user_data.full_name,
+        "role": "citizen",  # Default role
+        "verified": False,
+        "blocked": False,
+        "role_approved": False,
+        "created_at": datetime.utcnow()
+    }
     
-    from datetime import datetime
-    user_dict["created_at"] = datetime.utcnow()
+    # Handle police registration request
+    if user_data.requested_role == "police":
+        user_dict["requested_role"] = "police"
+        user_dict["badge_number"] = user_data.badge_number
+        user_dict["role_approved"] = False  # Needs admin approval
     
     result = await users_collection.insert_one(user_dict)
     user_dict["_id"] = result.inserted_id
@@ -41,8 +50,13 @@ async def register(user_data: UserCreate):
     
     return Token(
         access_token=access_token,
-        user={"id": str(result.inserted_id), "email": user_data.email, "name": user_data.name},
-        role="citizen"
+        user={
+            "id": str(result.inserted_id),
+            "email": user_data.email,
+            "name": user_data.name or user_data.full_name,
+            "phone": user_data.phone
+        },
+        role=user_dict["role"]
     )
 
 @router.post("/login", response_model=Token)
