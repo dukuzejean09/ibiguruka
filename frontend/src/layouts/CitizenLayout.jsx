@@ -3,6 +3,7 @@ import { useAuthStore } from "../store/authStore";
 import {
   Home,
   FileText,
+  ClipboardList,
   Bell,
   MessageCircle,
   User,
@@ -22,6 +23,7 @@ export default function CitizenLayout() {
   const navItems = [
     { to: "/citizen", icon: Home, label: "Home", end: true },
     { to: "/citizen/report", icon: FileText, label: "Report" },
+    { to: "/citizen/my-reports", icon: ClipboardList, label: "My Reports" },
     { to: "/citizen/alerts", icon: Bell, label: "Alerts" },
     { to: "/citizen/chat", icon: MessageCircle, label: "Chat" },
     { to: "/citizen/profile", icon: User, label: "Profile" },

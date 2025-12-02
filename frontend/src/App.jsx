@@ -20,6 +20,7 @@ import CommunitySafetyMap from "./pages/public/CommunitySafetyMap";
 import CitizenLayout from "./layouts/CitizenLayout";
 import CitizenHome from "./pages/citizen/Home";
 import ReportIncident from "./pages/citizen/ReportIncident";
+import MyReports from "./pages/citizen/MyReports";
 import CitizenAlerts from "./pages/citizen/Alerts";
 import CitizenChat from "./pages/citizen/Chat";
 import CitizenProfile from "./pages/citizen/Profile";
@@ -74,6 +75,7 @@ function App() {
         >
           <Route index element={<CitizenHome />} />
           <Route path="report" element={<ReportIncident />} />
+          <Route path="my-reports" element={<MyReports />} />
           <Route path="alerts" element={<CitizenAlerts />} />
           <Route path="chat/:reportId?" element={<CitizenChat />} />
           <Route path="profile" element={<CitizenProfile />} />

@@ -147,14 +147,26 @@ async def get_admin_stats(current_user: dict = Depends(get_current_active_user))
     if current_user.get("role") != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     
+    from ..database import get_reports_collection, get_clusters_collection
+    
     users_collection = get_users_collection()
+    reports_collection = get_reports_collection()
+    clusters_collection = get_clusters_collection()
     
     total_users = await users_collection.count_documents({})
-    active_users = await users_collection.count_documents({"blocked": False})
-    blocked_users = await users_collection.count_documents({"blocked": True})
+    total_reports = await reports_collection.count_documents({})
+    active_clusters = await clusters_collection.count_documents({})
+    
+    # Get last cluster run time
+    last_cluster = await clusters_collection.find_one(
+        {}, 
+        sort=[("timestamp", -1)]
+    )
+    last_cluster_run = last_cluster.get("timestamp") if last_cluster else None
     
     return {
         "totalUsers": total_users,
-        "activeUsers": active_users,
-        "blockedUsers": blocked_users
+        "totalReports": total_reports,
+        "activeClusters": active_clusters,
+        "lastClusterRun": last_cluster_run
     }

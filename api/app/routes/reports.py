@@ -2,11 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List, Optional
 from datetime import datetime
 from bson import ObjectId
+import random
+import string
 from ..models import Report, ReportCreate
 from ..database import get_reports_collection
 from ..auth import get_current_active_user
 
 router = APIRouter()
+
+def generate_reference_number():
+    """Generate a unique reference number like NW-2024-ABCD1234"""
+    year = datetime.utcnow().year
+    chars = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
+    return f"NW-{year}-{chars}"
 
 @router.post("/submit", response_model=dict)
 async def submit_report(report_data: ReportCreate):
@@ -17,11 +25,13 @@ async def submit_report(report_data: ReportCreate):
     report_dict["status"] = "new"
     report_dict["credibilityScore"] = 0.5  # Default score
     report_dict["flagged"] = False
+    report_dict["referenceNumber"] = generate_reference_number()
     
     result = await reports_collection.insert_one(report_dict)
     
     return {
         "id": str(result.inserted_id),
+        "referenceNumber": report_dict["referenceNumber"],
         "message": "Report submitted successfully"
     }
 

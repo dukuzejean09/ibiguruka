@@ -52,6 +52,7 @@ export default function ReportIncident() {
   });
 
   const [position, setPosition] = useState([-1.9441, 30.0619]);
+  const [referenceNumber, setReferenceNumber] = useState("");
 
   useEffect(() => {
     // Get user's current location
@@ -112,12 +113,13 @@ export default function ReportIncident() {
         userId: user?.id || "anonymous",
       };
 
-      await reportsAPI.submit(reportData);
+      const response = await reportsAPI.submit(reportData);
+      setReferenceNumber(response.data?.referenceNumber || "");
       setSuccess(true);
 
       setTimeout(() => {
         navigate("/citizen");
-      }, 2000);
+      }, 4000);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to submit report");
     } finally {
@@ -128,13 +130,26 @@ export default function ReportIncident() {
   if (success) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
+        <div className="text-center max-w-md">
           <div className="w-20 h-20 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
             <Send className="text-white" size={40} />
           </div>
           <h2 className="text-2xl font-bold text-white mb-2">
             Report Submitted!
           </h2>
+          {referenceNumber && (
+            <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 mb-4">
+              <p className="text-slate-400 text-sm mb-1">
+                Your Reference Number
+              </p>
+              <p className="text-2xl font-mono font-bold text-blue-400">
+                {referenceNumber}
+              </p>
+              <p className="text-slate-500 text-xs mt-2">
+                Save this number to track your report
+              </p>
+            </div>
+          )}
           <p className="text-slate-400">
             Thank you for keeping our community safe.
           </p>
