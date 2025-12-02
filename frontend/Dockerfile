@@ -12,8 +12,9 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Create .env file with default values if not exists
-RUN if [ ! -f .env ]; then echo "VITE_API_URL=http://localhost:8000" > .env; fi
+# Set the API URL for production (Railway)
+ARG VITE_API_URL=https://api-production-d7dc.up.railway.app/api
+ENV VITE_API_URL=$VITE_API_URL
 
 # Build the application
 RUN npm run build 2>&1 || (echo "Build failed. Checking for errors..." && ls -la && exit 1)

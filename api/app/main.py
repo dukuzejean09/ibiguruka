@@ -49,7 +49,6 @@ async def lifespan(app: FastAPI):
     # Shutdown
     await database.disconnect()
     print("👋 Database disconnected")
-    print("👋 Database disconnected")
 
 app = FastAPI(
     title="NeighborWatch Connect API",
@@ -61,7 +60,13 @@ app = FastAPI(
 # CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "*"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "https://ibiguruka.vercel.app",
+        "https://*.vercel.app",
+        "*"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -12,8 +12,8 @@ export default function AdminLoginPage() {
   const [error, setError] = useState("");
 
   const [formData, setFormData] = useState({
-    email: "officer@police.rw",
-    password: "password123",
+    email: "",
+    password: "",
   });
 
   const handleSubmit = async (e) => {
