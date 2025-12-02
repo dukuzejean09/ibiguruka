@@ -86,6 +86,7 @@ Once the API service is running, you need to create the default admin user:
 ### Option B: Using the API Initialization
 
 The API should automatically create the admin user on startup. Check the API logs:
+
 1. Click on the "api" service
 2. Go to "Logs" tab
 3. Look for "Default admin user created" message
@@ -114,6 +115,7 @@ The API should automatically create the admin user on startup. Check the API log
 Railway can pull images from GitHub Container Registry (GHCR) if they are public. Your GHCR images should be public by default when pushed via GitHub Actions.
 
 If you encounter authentication issues:
+
 1. Go to your GitHub repository → Settings → Secrets and variables → Actions
 2. Ensure `GHCR_TOKEN` is set with a valid Personal Access Token
 3. Make sure packages are set to public visibility:
@@ -124,27 +126,32 @@ If you encounter authentication issues:
 ## Environment Variables Reference
 
 ### API Service
+
 - `MONGODB_URL`: MongoDB connection string from Railway
 - `DATABASE_NAME`: `neighborwatch`
 - `SECRET_KEY`: Random secret key for JWT tokens
 - `DEBUG`: `False` for production
 
 ### Clustering Service
+
 - `MONGODB_URL`: MongoDB connection string from Railway
 - `DATABASE_NAME`: `neighborwatch`
 - `API_URL`: URL of your Railway API service
 
 ### Frontend (Vercel)
+
 - `VITE_API_URL`: URL of your Railway API service
 
 ## Monitoring and Logs
 
 ### View Logs
+
 1. Click on any service in Railway
 2. Go to "Logs" tab
 3. Monitor real-time logs for errors
 
 ### View Metrics
+
 1. Click on any service
 2. Go to "Metrics" tab
 3. Monitor CPU, memory, and network usage
@@ -152,21 +159,25 @@ If you encounter authentication issues:
 ## Troubleshooting
 
 ### API Service Won't Start
+
 - Check logs for errors
 - Verify `MONGODB_URL` is correct
 - Ensure `SECRET_KEY` is set
 
 ### Clustering Service Issues
+
 - Verify `API_URL` is correct and includes `https://`
 - Check that API service is running first
 - Review clustering logs for connection errors
 
 ### Frontend Can't Connect to Backend
+
 - Verify `VITE_API_URL` in Vercel matches your Railway API URL
 - Check CORS settings in the API
 - Ensure API domain is publicly accessible
 
 ### Database Connection Errors
+
 - Verify MongoDB service is running in Railway
 - Check that `MONGODB_URL` includes the correct database name
 - Ensure network connectivity between services
@@ -174,6 +185,7 @@ If you encounter authentication issues:
 ## Cost Considerations
 
 Railway free tier includes:
+
 - $5 of usage per month
 - Multiple services can run on the free tier
 - Monitor usage in Railway dashboard
@@ -183,6 +195,7 @@ If you exceed the free tier, Railway will automatically charge your payment meth
 ## Admin Credentials
 
 Default admin user:
+
 - **Email**: admin@neighborwatch.rw
 - **Password**: Admin123
 
@@ -191,6 +204,7 @@ Default admin user:
 ## Next Steps
 
 After successful deployment:
+
 1. Change admin password
 2. Test all features (registration, reports, alerts, chat)
 3. Monitor logs for any errors
@@ -200,6 +214,7 @@ After successful deployment:
 ## Support
 
 For issues with:
+
 - Railway deployment: https://docs.railway.app
 - GHCR access: https://docs.github.com/en/packages
 - Application issues: Check service logs in Railway
