@@ -1,10 +1,14 @@
 import time
 import os
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 from pymongo import MongoClient
 from sklearn.cluster import DBSCAN
 import numpy as np
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configuration
 MONGODB_URL = os.getenv('MONGODB_URL', 'mongodb://localhost:27017')
@@ -21,7 +25,7 @@ def connect_to_db():
 def fetch_recent_reports(db):
     """Fetch reports from last 24 hours"""
     reports_collection = db['reports']
-    twenty_four_hours_ago = datetime.utcnow() - timedelta(hours=24)
+    twenty_four_hours_ago = datetime.now(UTC) - timedelta(hours=24)
     
     reports = list(reports_collection.find({
         'timestamp': {'$gte': twenty_four_hours_ago}

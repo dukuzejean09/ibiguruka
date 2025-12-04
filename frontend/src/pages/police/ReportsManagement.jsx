@@ -12,6 +12,9 @@ import {
   Calendar,
   ChevronDown,
   X,
+  ShieldAlert,
+  ShieldCheck,
+  Ban,
 } from "lucide-react";
 import { reportsAPI, chatAPI } from "../../services/api";
 import { useNavigate } from "react-router-dom";
@@ -26,6 +29,7 @@ export default function ReportsManagement() {
     status: "",
     dateRange: "all",
     search: "",
+    trustFilter: "all", // "all", "high", "medium", "low"
   });
 
   useEffect(() => {
@@ -61,6 +65,41 @@ export default function ReportsManagement() {
     }
   };
 
+  const markAsFake = async (reportId) => {
+    if (
+      !confirm(
+        "Mark this report as fake/prank? This will lower the reporter's trust score."
+      )
+    ) {
+      return;
+    }
+    try {
+      await reportsAPI.markAsFake(reportId);
+      loadReports();
+      if (selectedReport?.id === reportId) {
+        setSelectedReport({
+          ...selectedReport,
+          flaggedAsFake: true,
+          status: "fake",
+        });
+      }
+    } catch (error) {
+      console.error("Failed to mark as fake:", error);
+    }
+  };
+
+  const verifyReport = async (reportId) => {
+    try {
+      await reportsAPI.verify(reportId);
+      loadReports();
+      if (selectedReport?.id === reportId) {
+        setSelectedReport({ ...selectedReport, verifiedByPolice: true });
+      }
+    } catch (error) {
+      console.error("Failed to verify report:", error);
+    }
+  };
+
   const startChat = async (reportId) => {
     try {
       await chatAPI.start(reportId);
@@ -70,12 +109,31 @@ export default function ReportsManagement() {
     }
   };
 
+  const getTrustColor = (score) => {
+    if (score >= 70) return "text-green-400";
+    if (score >= 40) return "text-amber-400";
+    return "text-red-400";
+  };
+
+  const getTrustBg = (score) => {
+    if (score >= 70) return "bg-green-500/20 border-green-500/30";
+    if (score >= 40) return "bg-amber-500/20 border-amber-500/30";
+    return "bg-red-500/20 border-red-500/30";
+  };
+
+  const getTrustLabel = (score) => {
+    if (score >= 70) return "High";
+    if (score >= 40) return "Medium";
+    return "Low";
+  };
+
   const exportToCSV = () => {
     const headers = [
       "Reference",
       "Category",
       "Description",
       "Status",
+      "Trust Score",
       "Location",
       "Date",
     ];
@@ -143,7 +201,19 @@ export default function ReportsManagement() {
         ?.toLowerCase()
         .includes(filters.search.toLowerCase()) ||
       report.referenceNumber?.includes(filters.search);
-    return matchesSearch;
+
+    // Trust filter
+    const trustScore = report.trustScore || 50;
+    let matchesTrust = true;
+    if (filters.trustFilter === "high") {
+      matchesTrust = trustScore >= 70;
+    } else if (filters.trustFilter === "medium") {
+      matchesTrust = trustScore >= 40 && trustScore < 70;
+    } else if (filters.trustFilter === "low") {
+      matchesTrust = trustScore < 40;
+    }
+
+    return matchesSearch && matchesTrust;
   });
 
   const categories = [
@@ -231,6 +301,20 @@ export default function ReportsManagement() {
             <option value="week">This Week</option>
             <option value="month">This Month</option>
           </select>
+
+          {/* Trust Filter */}
+          <select
+            value={filters.trustFilter}
+            onChange={(e) =>
+              setFilters({ ...filters, trustFilter: e.target.value })
+            }
+            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="all">All Trust Levels</option>
+            <option value="high">High Trust (70+)</option>
+            <option value="medium">Medium Trust (40-69)</option>
+            <option value="low">Low Trust (&lt;40)</option>
+          </select>
         </div>
       </div>
 
@@ -250,6 +334,9 @@ export default function ReportsManagement() {
                   Description
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+                  Trust
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
                   Status
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
@@ -263,14 +350,14 @@ export default function ReportsManagement() {
             <tbody className="divide-y divide-slate-700">
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center">
+                  <td colSpan={7} className="px-4 py-12 text-center">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
                   </td>
                 </tr>
               ) : filteredReports.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-4 py-12 text-center text-slate-400"
                   >
                     No reports found
@@ -280,13 +367,30 @@ export default function ReportsManagement() {
                 filteredReports.map((report) => (
                   <tr
                     key={report.id}
-                    className="hover:bg-slate-700/50 cursor-pointer"
+                    className={`hover:bg-slate-700/50 cursor-pointer ${
+                      report.flaggedAsFake ? "opacity-50 bg-red-900/20" : ""
+                    } ${report.isDelayed ? "bg-amber-900/10" : ""}`}
                     onClick={() => setSelectedReport(report)}
                   >
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="text-sm font-mono text-slate-300">
-                        #{report.referenceNumber || report.id?.slice(-8)}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono text-slate-300">
+                          #{report.referenceNumber || report.id?.slice(-8)}
+                        </span>
+                        {report.flaggedAsFake && (
+                          <span className="px-1.5 py-0.5 bg-red-500/20 text-red-400 text-xs rounded">
+                            FAKE
+                          </span>
+                        )}
+                        {report.verifiedByPolice && (
+                          <ShieldCheck size={14} className="text-green-400" />
+                        )}
+                        {report.isDelayed && (
+                          <span className="px-1.5 py-0.5 bg-amber-500/20 text-amber-400 text-xs rounded">
+                            DELAYED
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <span className="text-sm text-white">
@@ -296,6 +400,15 @@ export default function ReportsManagement() {
                     <td className="px-4 py-4">
                       <span className="text-sm text-slate-400 line-clamp-1 max-w-xs">
                         {report.description}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${getTrustBg(
+                          report.trustScore || 50
+                        )} ${getTrustColor(report.trustScore || 50)}`}
+                      >
+                        {report.trustScore || 50}
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
@@ -315,7 +428,7 @@ export default function ReportsManagement() {
                       </span>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -336,6 +449,30 @@ export default function ReportsManagement() {
                         >
                           <MessageCircle size={16} />
                         </button>
+                        {!report.verifiedByPolice && !report.flaggedAsFake && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              verifyReport(report.id);
+                            }}
+                            className="p-2 hover:bg-green-600/20 rounded-lg text-green-400 hover:text-green-300"
+                            title="Verify Report"
+                          >
+                            <ShieldCheck size={16} />
+                          </button>
+                        )}
+                        {!report.flaggedAsFake && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              markAsFake(report.id);
+                            }}
+                            className="p-2 hover:bg-red-600/20 rounded-lg text-red-400 hover:text-red-300"
+                            title="Mark as Fake"
+                          >
+                            <Ban size={16} />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>

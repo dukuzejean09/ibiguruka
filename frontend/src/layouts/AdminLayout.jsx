@@ -1,6 +1,14 @@
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { LayoutDashboard, Users, Settings, LogOut, Crown } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  Settings,
+  LogOut,
+  Crown,
+  Shield,
+  ShieldAlert,
+} from "lucide-react";
 
 export default function AdminLayout() {
   const { user, logout } = useAuthStore();
@@ -14,6 +22,7 @@ export default function AdminLayout() {
   const navItems = [
     { to: "/admin", icon: LayoutDashboard, label: "Dashboard", end: true },
     { to: "/admin/users", icon: Users, label: "Users" },
+    { to: "/admin/abuse", icon: ShieldAlert, label: "Abuse Analytics" },
     { to: "/admin/settings", icon: Settings, label: "Settings" },
   ];
 
@@ -24,11 +33,11 @@ export default function AdminLayout() {
         <div className="p-4 border-b border-slate-700">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-amber-600 rounded-lg flex items-center justify-center">
-              <Crown size={24} className="text-white" />
+              <Shield size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">Admin Panel</h1>
-              <p className="text-xs text-slate-400">System Control</p>
+              <h1 className="text-lg font-bold text-white">TrustBond</h1>
+              <p className="text-xs text-slate-400">Admin Panel</p>
             </div>
           </div>
         </div>

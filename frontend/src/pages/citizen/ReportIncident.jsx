@@ -1,7 +1,16 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
-import { Camera, MapPin, Send, Mic, Loader2 } from "lucide-react";
+import {
+  Camera,
+  MapPin,
+  Send,
+  Mic,
+  Loader2,
+  AlertTriangle,
+  Wifi,
+  WifiOff,
+} from "lucide-react";
 import { reportsAPI, adminAPI } from "../../services/api";
 import { useAuthStore } from "../../store/authStore";
 import L from "leaflet";
@@ -24,8 +33,40 @@ const defaultCategories = [
   "Assault",
   "Suspicious Activity",
   "Public Disturbance",
+  "Traffic Hazard",
   "Other",
 ];
+
+// Categories that require mandatory photo
+const PHOTO_REQUIRED_CATEGORIES = ["Theft", "Suspicious Activity"];
+
+/**
+ * Generate a privacy-preserving device fingerprint.
+ * This uses non-personal, non-unique properties to create a
+ * pseudonymous identifier that cannot be reversed to identify the user.
+ */
+function generateDeviceFingerprint() {
+  const data = [
+    screen.width + "x" + screen.height,
+    new Date().getTimezoneOffset(),
+    navigator.language,
+    navigator.platform,
+    navigator.hardwareConcurrency || "",
+    navigator.deviceMemory || "",
+  ].join("|");
+
+  // Simple hash function (in production, use SHA-256)
+  let hash = 0;
+  for (let i = 0; i < data.length; i++) {
+    const char = data.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
+  }
+
+  // Convert to hex string and pad to 32 characters
+  const hexHash = Math.abs(hash).toString(16).padStart(16, "0");
+  return hexHash + hexHash; // 32 char fingerprint
+}
 
 function LocationMarker({ position, setPosition }) {
   useMapEvents({
@@ -46,6 +87,9 @@ export default function ReportIncident() {
   const [error, setError] = useState("");
   const [isRecording, setIsRecording] = useState(false);
   const [categories, setCategories] = useState(defaultCategories);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [queuedReports, setQueuedReports] = useState([]);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   const [formData, setFormData] = useState({
     category: "",
@@ -69,6 +113,31 @@ export default function ReportIncident() {
 
     // Load categories from config
     loadCategories();
+  }, []);
+
+  // Online/offline detection
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      syncQueuedReports();
+    };
+    const handleOffline = () => setIsOnline(false);
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  // Load queued reports on component mount
+  useEffect(() => {
+    const saved = localStorage.getItem("queuedReports");
+    if (saved) {
+      setQueuedReports(JSON.parse(saved));
+    }
   }, []);
 
   const loadCategories = async () => {
@@ -117,27 +186,98 @@ export default function ReportIncident() {
     }
   };
 
+  const syncQueuedReports = async () => {
+    if (!isOnline || queuedReports.length === 0) return;
+
+    setIsSyncing(true);
+    const remainingReports = [];
+
+    for (const queuedReport of queuedReports) {
+      try {
+        const response = await reportsAPI.submit(queuedReport.data);
+        // Successfully submitted, don't add to remaining
+        console.log(`Synced queued report: ${queuedReport.id}`);
+      } catch (error) {
+        console.error(`Failed to sync report ${queuedReport.id}:`, error);
+        remainingReports.push(queuedReport);
+      }
+    }
+
+    setQueuedReports(remainingReports);
+    localStorage.setItem("queuedReports", JSON.stringify(remainingReports));
+    setIsSyncing(false);
+  };
+
+  const queueReport = (reportData) => {
+    const queuedReport = {
+      id: Date.now().toString(),
+      data: reportData,
+      timestamp: new Date().toISOString(),
+    };
+
+    const updatedQueue = [...queuedReports, queuedReport];
+    setQueuedReports(updatedQueue);
+    localStorage.setItem("queuedReports", JSON.stringify(updatedQueue));
+
+    return queuedReport.id;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    // Check mandatory photo for high-risk categories
+    if (
+      PHOTO_REQUIRED_CATEGORIES.includes(formData.category) &&
+      !formData.photo
+    ) {
+      setError(
+        `Photo is required for ${formData.category} reports to ensure credibility.`
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
+      // Generate privacy-preserving device fingerprint
+      const deviceFingerprint = generateDeviceFingerprint();
+
       const reportData = {
         ...formData,
         location: { lat: position[0], lng: position[1] },
         userId: user?.id || "anonymous",
+        deviceFingerprint: deviceFingerprint,
       };
+
+      if (!isOnline) {
+        // Queue report for later submission
+        const queueId = queueReport(reportData);
+        setReferenceNumber(`QUEUED-${queueId}`);
+        setSuccess(true);
+        setError("Report queued for submission when connection is restored.");
+        return;
+      }
 
       const response = await reportsAPI.submit(reportData);
       setReferenceNumber(response.data?.referenceNumber || "");
+
+      // Check if report was delayed due to low trust
+      if (response.data?.notice) {
+        setError(response.data.notice);
+      }
+
       setSuccess(true);
 
       setTimeout(() => {
         navigate("/citizen");
       }, 4000);
     } catch (err) {
-      setError(err.response?.data?.message || "Failed to submit report");
+      setError(
+        err.response?.data?.detail ||
+          err.response?.data?.message ||
+          "Failed to submit report"
+      );
     } finally {
       setLoading(false);
     }
@@ -187,6 +327,43 @@ export default function ReportIncident() {
           </div>
         )}
 
+        {/* Online/Offline Status Indicator */}
+        <div
+          className={`flex items-center justify-between px-4 py-3 rounded-lg mb-6 border ${
+            isOnline
+              ? "bg-green-500/10 border-green-500 text-green-400"
+              : "bg-amber-500/10 border-amber-500 text-amber-400"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            {isOnline ? <Wifi size={18} /> : <WifiOff size={18} />}
+            <span className="font-medium">
+              {isOnline ? "Online" : "Offline - Reports will be queued"}
+            </span>
+            {isSyncing && (
+              <span className="text-sm text-blue-400 ml-2">Syncing...</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {!isOnline && queuedReports.length > 0 && (
+              <div className="text-sm">
+                {queuedReports.length} report
+                {queuedReports.length !== 1 ? "s" : ""} queued
+              </div>
+            )}
+            {isOnline && queuedReports.length > 0 && (
+              <button
+                type="button"
+                onClick={syncQueuedReports}
+                disabled={isSyncing}
+                className="px-3 py-1 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSyncing ? "Syncing..." : "Sync Now"}
+              </button>
+            )}
+          </div>
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Category */}
           <div>
@@ -208,6 +385,12 @@ export default function ReportIncident() {
                 </option>
               ))}
             </select>
+            {HIGH_RISK_CATEGORIES.includes(formData.category) && (
+              <div className="flex items-center gap-2 mt-2 text-amber-400 text-sm">
+                <AlertCircle size={16} />
+                <span>Photo evidence is required for this category</span>
+              </div>
+            )}
           </div>
 
           {/* Description */}
@@ -265,10 +448,22 @@ export default function ReportIncident() {
           {/* Photo Upload */}
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
-              Photo Evidence (Optional)
+              Photo Evidence{" "}
+              {HIGH_RISK_CATEGORIES.includes(formData.category) ? (
+                <span className="text-amber-400">* Required</span>
+              ) : (
+                <span className="text-slate-400">(Optional)</span>
+              )}
             </label>
             <div className="flex items-center gap-4">
-              <label className="flex items-center gap-2 px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-slate-300 hover:bg-slate-600 cursor-pointer transition-colors">
+              <label
+                className={`flex items-center gap-2 px-4 py-3 border rounded-lg cursor-pointer transition-colors ${
+                  HIGH_RISK_CATEGORIES.includes(formData.category) &&
+                  !formData.photo
+                    ? "bg-amber-900/30 border-amber-600 text-amber-300 hover:bg-amber-900/50"
+                    : "bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600"
+                }`}
+              >
                 <Camera size={20} />
                 Choose Photo
                 <input

@@ -37,32 +37,29 @@ export default function PoliceLoginPage() {
 
     try {
       if (isRegister) {
-        // Register as police officer
+        // Register as police officer using police-specific endpoint
         const registerData = {
-          ...formData,
-          role: "police",
+          email: formData.email,
+          password: formData.password,
+          full_name: formData.full_name,
+          phone: formData.phone,
+          badge_number: formData.badge_number,
         };
-        const response = await authAPI.register(registerData);
-        const { user, token } = response.data;
-        setAuth(user, "police", token);
-        localStorage.setItem("token", token);
+        const response = await authAPI.registerPolice(registerData);
+        const { user, access_token } = response.data;
+        setAuth(user, "police", access_token);
+        localStorage.setItem("token", access_token);
         navigate("/police/dashboard");
       } else {
-        // Login
-        const response = await authAPI.login({
+        // Login using police-specific endpoint
+        const response = await authAPI.loginPolice({
           email: formData.email,
           password: formData.password,
         });
-        const { user, token, role } = response.data;
+        const { user, access_token, role } = response.data;
 
-        if (role !== "police") {
-          setError("Access denied. Police credentials required.");
-          setLoading(false);
-          return;
-        }
-
-        setAuth(user, role, token);
-        localStorage.setItem("token", token);
+        setAuth(user, role, access_token);
+        localStorage.setItem("token", access_token);
         navigate("/police/dashboard");
       }
     } catch (err) {
@@ -86,7 +83,7 @@ export default function PoliceLoginPage() {
           <h1 className="text-3xl font-bold text-white mb-2">
             Police Officer Portal
           </h1>
-          <p className="text-slate-300">NeighborWatch Connect</p>
+          <p className="text-slate-300">TrustBond Rwanda</p>
         </div>
 
         <div className="bg-slate-800 rounded-2xl shadow-2xl p-8">

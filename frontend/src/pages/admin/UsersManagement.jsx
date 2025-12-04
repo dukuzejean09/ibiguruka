@@ -69,7 +69,6 @@ export default function UsersManagement() {
       } else if (action === "reject_police") {
         await adminAPI.updateUser(userId, {
           requested_role: null,
-          role_approved: false,
         });
       }
       loadUsers();

@@ -39,7 +39,7 @@ export default function CitizenLayout() {
               <Shield size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">NeighborWatch</h1>
+              <h1 className="text-lg font-bold text-white">TrustBond</h1>
               <p className="text-xs text-slate-400">Community Safety</p>
             </div>
           </div>

@@ -70,6 +70,7 @@ class ReportCreate(BaseModel):
     location: Location
     photoUrl: Optional[str] = None
     userId: Optional[str] = "anonymous"
+    deviceFingerprint: Optional[str] = None  # Privacy-preserving device hash
 
 class Report(BaseModel):
     model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
@@ -80,10 +81,18 @@ class Report(BaseModel):
     location: Location
     photoUrl: Optional[str] = None
     userId: str = "anonymous"
+    deviceFingerprint: Optional[str] = None  # Privacy-preserving device hash
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     status: str = "new"
-    credibilityScore: float = 0.0
+    credibilityScore: float = 0.5
+    trustScore: float = 50.0  # Device trust score at time of submission
+    trustWeight: float = 0.5  # Calculated weight for clustering (0.0-1.0)
     flagged: bool = False
+    flaggedAsFake: bool = False  # Marked as fake/prank by police
+    isDelayed: bool = False  # Low-trust report in delayed queue
+    delayedUntil: Optional[datetime] = None  # When report becomes visible
+    verifiedByPolice: bool = False  # Police verified this report
+    referenceNumber: Optional[str] = None
 
 # Cluster Models
 class Cluster(BaseModel):
@@ -95,7 +104,26 @@ class Cluster(BaseModel):
     radius: float
     points: List[str]  # Report IDs
     riskLevel: str = "medium"
+    averageTrustScore: float = 50.0  # Average trust score of reports in cluster
+    weightedReportCount: float = 0.0  # Sum of trust weights
     timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+
+# Device Fingerprint Model (for anti-abuse tracking)
+class DeviceFingerprint(BaseModel):
+    model_config = {"populate_by_name": True, "arbitrary_types_allowed": True}
+    
+    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    fingerprint: str  # 128-bit hash (32 hex chars)
+    trust_score: int = 50  # 0-100
+    report_count: int = 0
+    verified_count: int = 0
+    fake_count: int = 0
+    duplicate_count: int = 0
+    last_report_time: Optional[datetime] = None
+    last_report_location: Optional[Location] = None
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 # Chat Models
 class Message(BaseModel):

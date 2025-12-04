@@ -46,9 +46,7 @@ export default function WelcomeScreen() {
               <Shield size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">
-                NeighborWatch Connect
-              </h1>
+              <h1 className="text-xl font-bold text-white">TrustBond Rwanda</h1>
               <p className="text-xs text-slate-400">
                 Community Safety Platform
               </p>

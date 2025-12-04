@@ -32,7 +32,7 @@ export default function AdminSettings() {
     refreshInterval: 30,
     minSamples: 3,
     epsilon: 0.005,
-    enabled: true
+    enabled: true,
   });
 
   // System Stats
@@ -59,7 +59,7 @@ export default function AdminSettings() {
             refreshInterval: response.data.clustering.refreshInterval || 30,
             minSamples: response.data.clustering.minSamples || 3,
             epsilon: response.data.clustering.epsilon || 0.005,
-            enabled: response.data.clustering.enabled !== false
+            enabled: response.data.clustering.enabled !== false,
           });
         }
       }
@@ -67,8 +67,15 @@ export default function AdminSettings() {
       console.error("Failed to load config:", error);
       // Use defaults
       setCategories([
-        "Theft", "Vandalism", "Accident", "Fire", "Assault",
-        "Suspicious Activity", "Public Disturbance", "Traffic Hazard", "Other"
+        "Theft",
+        "Vandalism",
+        "Accident",
+        "Fire",
+        "Assault",
+        "Suspicious Activity",
+        "Public Disturbance",
+        "Traffic Hazard",
+        "Other",
       ]);
     } finally {
       setLoading(false);
@@ -90,25 +97,27 @@ export default function AdminSettings() {
     try {
       setSaving(true);
       setMessage({ type: "", text: "" });
-      
+
       await adminAPI.updateConfig({
         categories,
         clustering: {
           refreshInterval: clusterSettings.refreshInterval,
           minSamples: clusterSettings.minSamples,
           epsilon: clusterSettings.epsilon,
-          enabled: clusterSettings.enabled
-        }
+          enabled: clusterSettings.enabled,
+        },
       });
-      
+
       setMessage({
         type: "success",
-        text: "Configuration saved successfully!"
+        text: "Configuration saved successfully!",
       });
     } catch (error) {
       setMessage({
         type: "error",
-        text: "Failed to save configuration: " + (error.response?.data?.detail || error.message)
+        text:
+          "Failed to save configuration: " +
+          (error.response?.data?.detail || error.message),
       });
     } finally {
       setSaving(false);
@@ -122,13 +131,17 @@ export default function AdminSettings() {
       const response = await clustersAPI.refresh();
       setMessage({
         type: "success",
-        text: `Cluster analysis completed! ${response.data?.clusters || 0} clusters identified from ${response.data?.reports_analyzed || 0} reports.`
+        text: `Cluster analysis completed! ${
+          response.data?.clusters || 0
+        } clusters identified from ${
+          response.data?.reports_analyzed || 0
+        } reports.`,
       });
       loadStats();
     } catch (error) {
       setMessage({
         type: "error",
-        text: "Failed to trigger cluster analysis"
+        text: "Failed to trigger cluster analysis",
       });
     } finally {
       setRefreshing(false);
@@ -276,18 +289,28 @@ export default function AdminSettings() {
             DBSCAN Clustering Parameters
           </h2>
           <p className="text-slate-400 text-sm mb-4">
-            Adjust the clustering algorithm parameters. Changes take effect on the next cluster refresh.
+            Adjust the clustering algorithm parameters. Changes take effect on
+            the next cluster refresh.
           </p>
 
           <div className="space-y-6">
             {/* Enable/Disable */}
             <div className="flex items-center justify-between">
               <div>
-                <label className="text-sm font-medium text-slate-300">Clustering Enabled</label>
-                <p className="text-xs text-slate-500">Turn automatic clustering on or off</p>
+                <label className="text-sm font-medium text-slate-300">
+                  Clustering Enabled
+                </label>
+                <p className="text-xs text-slate-500">
+                  Turn automatic clustering on or off
+                </p>
               </div>
               <button
-                onClick={() => setClusterSettings(prev => ({ ...prev, enabled: !prev.enabled }))}
+                onClick={() =>
+                  setClusterSettings((prev) => ({
+                    ...prev,
+                    enabled: !prev.enabled,
+                  }))
+                }
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                   clusterSettings.enabled ? "bg-blue-600" : "bg-slate-600"
                 }`}
@@ -316,10 +339,12 @@ export default function AdminSettings() {
                 max="2000"
                 step="50"
                 value={epsilonToMeters(clusterSettings.epsilon)}
-                onChange={(e) => setClusterSettings(prev => ({
-                  ...prev,
-                  epsilon: metersToEpsilon(parseInt(e.target.value))
-                }))}
+                onChange={(e) =>
+                  setClusterSettings((prev) => ({
+                    ...prev,
+                    epsilon: metersToEpsilon(parseInt(e.target.value)),
+                  }))
+                }
                 className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
               <div className="flex justify-between text-xs text-slate-500 mt-1">
@@ -343,10 +368,12 @@ export default function AdminSettings() {
                 min="2"
                 max="10"
                 value={clusterSettings.minSamples}
-                onChange={(e) => setClusterSettings(prev => ({
-                  ...prev,
-                  minSamples: parseInt(e.target.value)
-                }))}
+                onChange={(e) =>
+                  setClusterSettings((prev) => ({
+                    ...prev,
+                    minSamples: parseInt(e.target.value),
+                  }))
+                }
                 className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
               <div className="flex justify-between text-xs text-slate-500 mt-1">
@@ -371,10 +398,12 @@ export default function AdminSettings() {
                 max="60"
                 step="5"
                 value={clusterSettings.refreshInterval}
-                onChange={(e) => setClusterSettings(prev => ({
-                  ...prev,
-                  refreshInterval: parseInt(e.target.value)
-                }))}
+                onChange={(e) =>
+                  setClusterSettings((prev) => ({
+                    ...prev,
+                    refreshInterval: parseInt(e.target.value),
+                  }))
+                }
                 className="w-full h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500"
               />
               <div className="flex justify-between text-xs text-slate-500 mt-1">
@@ -389,7 +418,10 @@ export default function AdminSettings() {
               disabled={refreshing || !clusterSettings.enabled}
               className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 text-white rounded-lg font-medium"
             >
-              <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
+              <RefreshCw
+                size={18}
+                className={refreshing ? "animate-spin" : ""}
+              />
               {refreshing ? "Running Analysis..." : "Run Cluster Analysis Now"}
             </button>
           </div>
@@ -402,7 +434,8 @@ export default function AdminSettings() {
             Incident Categories
           </h2>
           <p className="text-slate-400 text-sm mb-4">
-            Manage the categories available for incident reports. Changes affect the citizen report form immediately after saving.
+            Manage the categories available for incident reports. Changes affect
+            the citizen report form immediately after saving.
           </p>
 
           {/* Add New Category */}
@@ -442,7 +475,7 @@ export default function AdminSettings() {
               </div>
             ))}
           </div>
-          
+
           <p className="text-xs text-slate-500 mt-4">
             {categories.length} categories configured
           </p>
@@ -458,7 +491,7 @@ export default function AdminSettings() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <h3 className="text-slate-400 text-sm mb-2">Platform</h3>
-            <p className="text-white">NeighborWatch Connect</p>
+            <p className="text-white">TrustBond Rwanda</p>
             <p className="text-slate-500 text-sm">Version 1.0.0</p>
           </div>
           <div>

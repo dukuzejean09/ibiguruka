@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from typing import List, Optional
 from datetime import datetime, timedelta
 from bson import ObjectId
-from ..database import get_users_collection, get_config_collection
+from ..database import get_users_collection, get_config_collection, get_fingerprints_collection, get_reports_collection
 from ..auth import get_current_active_user
 from ..models import SystemConfig
+from ..trust_scoring import get_abuse_analytics, cleanup_old_fingerprints
 
 router = APIRouter()
 
@@ -283,3 +284,206 @@ async def update_system_config(
         await config_collection.insert_one(update_data)
     
     return {"message": "Configuration updated successfully"}
+
+
+# ============================================
+# ABUSE ANALYTICS ENDPOINTS
+# ============================================
+
+@router.get("/abuse/analytics")
+async def get_abuse_analytics_endpoint(
+    current_user: dict = Depends(get_current_active_user)
+):
+    """
+    Get comprehensive abuse analytics for the admin dashboard.
+    
+    Returns:
+    - Trust score distribution
+    - Top offenders (devices with most fake reports)
+    - Trend data for flagged reports
+    - Low-trust device count
+    """
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    fingerprints_collection = get_fingerprints_collection()
+    reports_collection = get_reports_collection()
+    
+    # Get analytics from trust scoring module
+    analytics = await get_abuse_analytics(fingerprints_collection)
+    
+    # Add report-level abuse stats
+    fake_reports = await reports_collection.count_documents({"flaggedAsFake": True})
+    delayed_reports = await reports_collection.count_documents({"isDelayed": True})
+    verified_reports = await reports_collection.count_documents({"verifiedByPolice": True})
+    
+    # Category breakdown for fake reports
+    fake_by_category = []
+    async for doc in reports_collection.aggregate([
+        {"$match": {"flaggedAsFake": True}},
+        {"$group": {"_id": "$category", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}}
+    ]):
+        fake_by_category.append({"category": doc["_id"], "count": doc["count"]})
+    
+    # Recent fake reports (last 7 days)
+    seven_days_ago = datetime.utcnow() - timedelta(days=7)
+    recent_fakes = await reports_collection.count_documents({
+        "flaggedAsFake": True,
+        "timestamp": {"$gte": seven_days_ago}
+    })
+    
+    analytics["reports"] = {
+        "totalFake": fake_reports,
+        "currentlyDelayed": delayed_reports,
+        "verified": verified_reports,
+        "recentFakes": recent_fakes,
+        "fakeByCategory": fake_by_category
+    }
+    
+    return analytics
+
+
+@router.get("/abuse/low-trust-devices")
+async def get_low_trust_devices(
+    limit: int = 20,
+    current_user: dict = Depends(get_current_active_user)
+):
+    """
+    Get list of devices with low trust scores.
+    These are potential abusers that may need monitoring.
+    """
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    fingerprints_collection = get_fingerprints_collection()
+    
+    cursor = fingerprints_collection.find({
+        "trust_score": {"$lt": 40}
+    }).sort("trust_score", 1).limit(limit)
+    
+    devices = []
+    async for fp in cursor:
+        devices.append({
+            "fingerprint_masked": fp["fingerprint"][:8] + "..." + fp["fingerprint"][-4:],
+            "trust_score": fp["trust_score"],
+            "report_count": fp.get("report_count", 0),
+            "fake_count": fp.get("fake_count", 0),
+            "verified_count": fp.get("verified_count", 0),
+            "duplicate_count": fp.get("duplicate_count", 0),
+            "last_activity": fp.get("updated_at"),
+            "created_at": fp.get("created_at")
+        })
+    
+    return {
+        "count": len(devices),
+        "devices": devices
+    }
+
+
+@router.get("/abuse/flagged-reports")
+async def get_flagged_reports(
+    limit: int = 50,
+    current_user: dict = Depends(get_current_active_user)
+):
+    """
+    Get reports that have been flagged as fake/prank.
+    """
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    reports_collection = get_reports_collection()
+    
+    cursor = reports_collection.find({
+        "flaggedAsFake": True
+    }).sort("timestamp", -1).limit(limit)
+    
+    reports = []
+    async for report in cursor:
+        reports.append({
+            "id": str(report["_id"]),
+            "referenceNumber": report.get("referenceNumber"),
+            "category": report.get("category"),
+            "description": report.get("description", "")[:100],
+            "location": report.get("location"),
+            "timestamp": report.get("timestamp"),
+            "deviceFingerprint_masked": (report.get("deviceFingerprint", "")[:8] + "...") if report.get("deviceFingerprint") else "anonymous",
+            "trustScore": report.get("trustScore", 50)
+        })
+    
+    return {
+        "count": len(reports),
+        "reports": reports
+    }
+
+
+@router.post("/abuse/cleanup")
+async def cleanup_old_data(
+    current_user: dict = Depends(get_current_active_user)
+):
+    """
+    Purge fingerprint data older than 30 days for privacy compliance.
+    This should be run periodically (can be automated via cron).
+    """
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    fingerprints_collection = get_fingerprints_collection()
+    deleted_count = await cleanup_old_fingerprints(fingerprints_collection)
+    
+    return {
+        "message": f"Cleaned up {deleted_count} old fingerprint records",
+        "deleted_count": deleted_count
+    }
+
+
+@router.get("/trust/device/{fingerprint_prefix}")
+async def get_device_trust_info(
+    fingerprint_prefix: str,
+    current_user: dict = Depends(get_current_active_user)
+):
+    """
+    Get trust information for a specific device by fingerprint prefix.
+    Only returns partial fingerprint for privacy.
+    """
+    if current_user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    fingerprints_collection = get_fingerprints_collection()
+    
+    # Search by prefix
+    fp_record = await fingerprints_collection.find_one({
+        "fingerprint": {"$regex": f"^{fingerprint_prefix}"}
+    })
+    
+    if not fp_record:
+        raise HTTPException(status_code=404, detail="Device not found")
+    
+    # Get recent reports from this device
+    reports_collection = get_reports_collection()
+    recent_reports = []
+    async for report in reports_collection.find({
+        "deviceFingerprint": fp_record["fingerprint"]
+    }).sort("timestamp", -1).limit(10):
+        recent_reports.append({
+            "id": str(report["_id"]),
+            "referenceNumber": report.get("referenceNumber"),
+            "category": report.get("category"),
+            "status": report.get("status"),
+            "flaggedAsFake": report.get("flaggedAsFake", False),
+            "verifiedByPolice": report.get("verifiedByPolice", False),
+            "timestamp": report.get("timestamp")
+        })
+    
+    return {
+        "fingerprint_masked": fp_record["fingerprint"][:8] + "..." + fp_record["fingerprint"][-4:],
+        "trust_score": fp_record.get("trust_score", 50),
+        "report_count": fp_record.get("report_count", 0),
+        "fake_count": fp_record.get("fake_count", 0),
+        "verified_count": fp_record.get("verified_count", 0),
+        "duplicate_count": fp_record.get("duplicate_count", 0),
+        "created_at": fp_record.get("created_at"),
+        "updated_at": fp_record.get("updated_at"),
+        "score_history": fp_record.get("score_history", [])[-10:],  # Last 10 changes
+        "recent_reports": recent_reports
+    }

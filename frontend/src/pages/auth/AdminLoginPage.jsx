@@ -22,21 +22,19 @@ export default function AdminLoginPage() {
     setLoading(true);
 
     try {
-      const response = await authAPI.login(formData);
-      const { user, token, role } = response.data;
+      const response = await authAPI.loginAdmin(formData);
+      const { user, access_token, role } = response.data;
 
-      if (role !== "police" && role !== "admin") {
-        setError("Access denied. Police or Admin credentials required.");
-        setLoading(false);
-        return;
-      }
+      setAuth(user, role, access_token);
+      localStorage.setItem("token", access_token);
 
-      setAuth(user, role, token);
-      localStorage.setItem("token", token);
-
-      navigate(role === "admin" ? "/admin" : "/police");
+      navigate("/admin");
     } catch (err) {
-      setError(err.response?.data?.message || "Authentication failed");
+      setError(
+        err.response?.data?.detail ||
+          err.response?.data?.message ||
+          "Authentication failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -150,7 +148,7 @@ export default function AdminLoginPage() {
               Default Admin Credentials:
             </p>
             <p className="text-xs text-slate-500">
-              Email: admin@neighborwatch.rw
+              Email: admin@trustbond.rw
               <br />
               Password: Admin123
             </p>

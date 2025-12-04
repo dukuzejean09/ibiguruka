@@ -27,15 +27,19 @@ export default function LoginPage() {
     try {
       const response = isRegister
         ? await authAPI.register(formData)
-        : await authAPI.login(formData);
+        : await authAPI.loginCitizen(formData);
 
-      const { user, token, role } = response.data;
-      setAuth(user, role || "citizen", token);
-      localStorage.setItem("token", token);
+      const { user, access_token, role } = response.data;
+      setAuth(user, role || "citizen", access_token);
+      localStorage.setItem("token", access_token);
 
       navigate("/citizen");
     } catch (err) {
-      setError(err.response?.data?.message || "Authentication failed");
+      setError(
+        err.response?.data?.detail ||
+          err.response?.data?.message ||
+          "Authentication failed"
+      );
     } finally {
       setLoading(false);
     }
@@ -62,7 +66,7 @@ export default function LoginPage() {
             <Shield size={40} className="text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">
-            NeighborWatch Connect
+            TrustBond Rwanda
           </h1>
           <p className="text-slate-300">Community Safety Platform</p>
         </div>

@@ -8,6 +8,7 @@ import {
   MessageCircle,
   LogOut,
   Shield,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function PoliceLayout() {
@@ -22,6 +23,11 @@ export default function PoliceLayout() {
   const navItems = [
     { to: "/police", icon: LayoutDashboard, label: "Dashboard", end: true },
     { to: "/police/reports", icon: FileText, label: "Reports" },
+    {
+      to: "/police/low-trust-queue",
+      icon: AlertTriangle,
+      label: "Low-Trust Queue",
+    },
     { to: "/police/clusters", icon: MapPin, label: "Clusters" },
     { to: "/police/broadcast", icon: Radio, label: "Broadcast" },
     { to: "/police/chat", icon: MessageCircle, label: "Chat" },
@@ -37,8 +43,8 @@ export default function PoliceLayout() {
               <Shield size={24} className="text-white" />
             </div>
             <div>
-              <h1 className="text-lg font-bold text-white">RNP Command</h1>
-              <p className="text-xs text-slate-400">Officer Portal</p>
+              <h1 className="text-lg font-bold text-white">TrustBond</h1>
+              <p className="text-xs text-slate-400">Police Portal</p>
             </div>
           </div>
         </div>

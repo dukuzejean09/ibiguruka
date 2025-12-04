@@ -29,6 +29,7 @@ import CitizenProfile from "./pages/citizen/Profile";
 import PoliceLayout from "./layouts/PoliceLayout";
 import PoliceDashboard from "./pages/police/Dashboard";
 import ReportsManagement from "./pages/police/ReportsManagement";
+import LowTrustQueue from "./pages/police/LowTrustQueue";
 import ClustersView from "./pages/police/ClustersView";
 import BroadcastAlert from "./pages/police/BroadcastAlert";
 import PoliceChat from "./pages/police/Chat";
@@ -39,6 +40,8 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import UsersManagement from "./pages/admin/UsersManagement";
 import UserDetails from "./pages/admin/UserDetails";
 import AdminSettings from "./pages/admin/Settings";
+import AbuseAnalytics from "./pages/admin/AbuseAnalytics";
+import EvaluationDashboard from "./pages/admin/EvaluationDashboard";
 
 function App() {
   const { user, role } = useAuthStore();
@@ -93,6 +96,7 @@ function App() {
           <Route index element={<Navigate to="/police/dashboard" replace />} />
           <Route path="dashboard" element={<PoliceDashboard />} />
           <Route path="reports" element={<ReportsManagement />} />
+          <Route path="low-trust-queue" element={<LowTrustQueue />} />
           <Route path="clusters" element={<ClustersView />} />
           <Route path="broadcast" element={<BroadcastAlert />} />
           <Route path="chat/:chatId?" element={<PoliceChat />} />
@@ -110,7 +114,9 @@ function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="users" element={<UsersManagement />} />
           <Route path="users/:userId" element={<UserDetails />} />
+          <Route path="abuse" element={<AbuseAnalytics />} />
           <Route path="settings" element={<AdminSettings />} />
+          <Route path="evaluation" element={<EvaluationDashboard />} />
         </Route>
 
         {/* Default Redirect */}

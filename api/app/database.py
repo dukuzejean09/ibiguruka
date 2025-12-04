@@ -37,3 +37,9 @@ def get_alerts_collection():
 
 def get_config_collection():
     return database.get_collection("config")
+
+def get_fingerprints_collection():
+    return database.get_collection("fingerprints")
+
+def get_messages_collection():
+    return database.get_collection("messages")

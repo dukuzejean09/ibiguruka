@@ -1,0 +1,46 @@
+{
+  "title": "NeighborWatch Connect Usability Evaluation",
+  "description": "Please rate the following aspects on a scale of 1-5 (1=Very Poor, 5=Excellent)",
+  "sections": {
+    "ease_of_use": {
+      "questions": [
+        "How easy was it to report an incident?",
+        "How intuitive was the navigation?",
+        "How clear were the instructions?",
+        "How satisfied are you with the overall experience?"
+      ],
+      "rating_scale": "1-5 (1=Strongly Disagree/Very Poor, 5=Strongly Agree/Excellent)"
+    },
+    "functionality": {
+      "questions": [
+        "Did all features work as expected?",
+        "Were you able to complete your tasks successfully?",
+        "How reliable did the system feel?"
+      ],
+      "rating_scale": "1-5 (1=Strongly Disagree/Very Poor, 5=Strongly Agree/Excellent)"
+    },
+    "performance": {
+      "questions": [
+        "How responsive was the application?",
+        "How long did actions take to complete?",
+        "Did you experience any delays or lag?"
+      ],
+      "rating_scale": "1-5 (1=Strongly Disagree/Very Poor, 5=Strongly Agree/Excellent)"
+    },
+    "accessibility": {
+      "questions": [
+        "How accessible was the interface for different abilities?",
+        "Were text sizes and colors appropriate?",
+        "How usable was the mobile experience?"
+      ],
+      "rating_scale": "1-5 (1=Strongly Disagree/Very Poor, 5=Strongly Agree/Excellent)"
+    }
+  },
+  "demographics": [
+    "Age group: ___18-24 ___25-34 ___35-44 ___45-54 ___55+",
+    "Gender: ___Male ___Female ___Other ___Prefer not to say",
+    "Technical experience: ___Beginner ___Intermediate ___Advanced",
+    "Device used: ___Desktop ___Tablet ___Mobile",
+    "Internet connection: ___Excellent ___Good ___Fair ___Poor"
+  ]
+}

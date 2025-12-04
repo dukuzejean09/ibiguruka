@@ -16,12 +16,17 @@ async def create_default_admin():
     try:
         users_collection = database.db["users"]
         
-        # Check if admin exists
-        existing_admin = await users_collection.find_one({"email": "admin@neighborwatch.rw"})
+        # Check if admin exists (check both old and new email)
+        existing_admin = await users_collection.find_one({
+            "$or": [
+                {"email": "admin@trustbond.rw"},
+                {"email": "admin@neighborwatch.rw"}
+            ]
+        })
         
         if not existing_admin:
             admin_user = {
-                "email": "admin@neighborwatch.rw",
+                "email": "admin@trustbond.rw",
                 "password_hash": get_password_hash("Admin123"),
                 "full_name": "System Administrator",
                 "phone": "+250788000000",
@@ -31,7 +36,7 @@ async def create_default_admin():
                 "created_at": datetime.utcnow()
             }
             await users_collection.insert_one(admin_user)
-            print("✅ Default admin user created: admin@neighborwatch.rw / Admin123")
+            print("✅ Default admin user created: admin@trustbond.rw / Admin123")
         else:
             print("ℹ️  Default admin user already exists")
     except Exception as e:
@@ -51,8 +56,8 @@ async def lifespan(app: FastAPI):
     print("👋 Database disconnected")
 
 app = FastAPI(
-    title="NeighborWatch Connect API",
-    description="Community Safety Platform - Backend API",
+    title="TrustBond Rwanda API",
+    description="Privacy-Preserving Community Incident Reporting Platform with Trust-Weighted Hotspot Detection",
     version="1.0.0",
     lifespan=lifespan
 )
